@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ツール・シミュレーター一覧</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ffcc33; 
+            --secondary-color: #ffb347; 
+            --text-color: #5c4b3a; 
+            --sub-text-color: #8c7b6a;
+            --bg-color: #fdf6e3; 
+            --card-bg: #ffffff;
+            --accent-glow: rgba(255, 204, 51, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 6vw, 2rem);
+            margin: 0;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.05em;
+        }
+
+        .info-container {
+            width: 100%;
+            max-width: 550px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 25px 20px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 204, 51, 0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+            text-align: center;
+        }
+
+        .rule-text {
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        .warning {
+            color: #e67e22;
+            font-weight: bold;
+        }
+
+        .notice-text {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--sub-text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 960px;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 40px 20px;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 通常カードのホバー */
+        .card:not(.coming-soon):hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px var(--accent-glow);
+            border-color: var(--primary-color);
+        }
+
+        /* Coming Soon カードの設定 */
+        .card.coming-soon {
+            opacity: 0.7;
+            cursor: default;
+            border: 1px dashed #dcd6a9;
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .card.coming-soon:hover {
+            transform: scale(0.98);
+        }
+
+        .icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:not(.coming-soon):hover .icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .title {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 30px 15px; }
+            .info-container { padding: 20px 15px; }
+            .rule-text { font-size: 0.85rem; }
+            .notice-text { font-size: 0.8rem; }
+            .container { gap: 15px; }
+            .card { padding: 30px 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>ツール・シミュレーター一覧</h1>
+</header>
+
+<div class="info-container">
+    <div class="rule-text">
+        スクショ投稿や加工、トレース等はご自由にお楽しみください。<br>
+        <span class="warning">※営利目的や商用利用はご遠慮ください。</span>
+    </div>
+    
+    <div class="notice-text">
+        新しいツールも準備ができ次第、順次追加予定です。<br>
+        ご意見・ご感想などはマシュマロやDMまでお寄せください。
+    </div>
+</div>
+
+<div class="container">
+    <a href="https://qwertyaz111.github.io/hand-size-comparison/" class="card">
+        <div class="icon">✋</div>
+        <div class="title">手の大きさ比較ツール</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/foot-size-comparison/" class="card">
+        <div class="icon">🦶</div>
+        <div class="title">足の大きさ比較ツール</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/eye-level-simulator/" class="card">
+        <div class="icon">👀</div>
+        <div class="title">目線差シミュレーター</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/shared-shirt-simulator/" class="card">
+        <div class="icon">👔</div>
+        <div class="title">彼シャツシミュレーター</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/stroll-date-simulator/" class="card">
+        <div class="icon">👣</div>
+        <div class="title">おさんぽシミュレーター</div>
+    </a>
+
+    <div class="card coming-soon">
+        <div class="icon">🎁</div>
+        <div class="title">Coming Soon...</div>
+    </div>
+</div>
+
+</body>
+</html>
