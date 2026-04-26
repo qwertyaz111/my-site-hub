@@ -121,7 +121,7 @@
             border-color: var(--primary-color);
         }
 
-        /* Coming Soon カードの設定 */
+        /* Coming Soon（未解禁）カードの設定 */
         .card.coming-soon {
             opacity: 0.7;
             cursor: default;
@@ -146,6 +146,9 @@
         .title {
             font-weight: 700;
             font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         @media (max-width: 480px) {
@@ -204,10 +207,10 @@
         <div class="title">おさんぽシミュレーター</div>
     </a>
 
-    <div class="card coming-soon">
+    <a href="https://qwertyaz111.github.io/kabedon-floor-simulator/" class="card">
         <div class="icon">💓</div>
-        <div class="title">🔒 床ドンシミュレーター</div>
-    </div>
+        <div class="title">床ドンシミュレーター</div>
+    </a>
 </div>
 
 </body>
