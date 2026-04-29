@@ -121,7 +121,7 @@
             border-color: var(--primary-color);
         }
 
-        /* Coming Soon（未解禁）カードの設定 */
+        /* Coming Soonカードの設定 */
         .card.coming-soon {
             opacity: 0.7;
             cursor: default;
@@ -131,6 +131,21 @@
         
         .card.coming-soon:hover {
             transform: scale(0.98);
+        }
+
+        /* 制作中ラベルの追加 */
+        .card.coming-soon::after {
+            content: "COMING SOON";
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            background: #dcd6a9;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            letter-spacing: 0.05em;
         }
 
         .icon {
@@ -149,6 +164,13 @@
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        .status-text {
+            font-size: 0.8rem;
+            color: var(--sub-text-color);
+            margin-top: 8px;
+            font-weight: normal;
         }
 
         @media (max-width: 480px) {
@@ -215,21 +237,25 @@
     <div class="card coming-soon">
         <div class="icon">📏</div>
         <div class="title">🔒身長比較ツール</div>
+        <div class="status-text">🚧制作中...</div>
     </div>
 
     <div class="card coming-soon">
         <div class="icon">🫂</div>
         <div class="title">🔒ハグシミュレーター</div>
+        <div class="status-text">🚧制作中...</div>
     </div>
 
     <div class="card coming-soon">
         <div class="icon">📦</div>
         <div class="title">🔒箱詰めシミュレーター</div>
+        <div class="status-text">🚧制作中...</div>
     </div>
 
      <div class="card coming-soon">
         <div class="icon">🫶</div>
         <div class="title">🔒ほっぺ包みシミュレーター</div>
+        <div class="status-text">🚧制作中...</div>
     </div>
 </div>
 
