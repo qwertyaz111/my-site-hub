@@ -14,6 +14,7 @@
             --bg-color: #fdf6e3; 
             --card-bg: #ffffff;
             --accent-glow: rgba(255, 204, 51, 0.3);
+            --r18-color: #e74c3c;
         }
 
         * {
@@ -148,6 +149,26 @@
             letter-spacing: 0.05em;
         }
 
+        /* R18ラベルの追加 */
+        .r18-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            background: var(--r18-color);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .r18-text {
+            color: var(--r18-color);
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
         .icon {
             font-size: 3.5rem;
             margin-bottom: 15px;
@@ -252,8 +273,10 @@
     </div>
 
     <div class="card coming-soon">
+        <span class="r18-badge">R18</span>
         <div class="icon">🏇</div>
         <div class="title">🔒お馬さんごっこシミュレーター</div>
+        <div class="r18-text">※成人向け要素を含みます</div>
         <div class="status-text">制作中...</div>
     </div>
 
