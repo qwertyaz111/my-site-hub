@@ -34,7 +34,7 @@
             -webkit-text-size-adjust: 100%;
         }
 
-        /* --- タイトル部分：ここを差し替え --- */
+        /* --- タイトル部分（下のツールと同じフォントに統一） --- */
         header {
             text-align: center;
             margin-bottom: 35px;
@@ -42,20 +42,22 @@
         }
 
         h1 {
+            /* 下の .title と同じ Noto Sans JP の 700(太字) を使用 */
             font-family: 'Noto Sans JP', sans-serif;
             font-weight: 700;
-            /* スマホで二行にならないよう自動縮小しつつ、最大サイズを調整 */
+            /* 画面幅に合わせて自動縮小し、一行を死守 */
             font-size: clamp(1.1rem, 5.2vw, 2rem); 
             margin: 0 auto;
             position: relative;
             display: inline-block;
             padding: 0 5px;
-            color: var(--text-color); /* グラデーションをやめてカードと同じ色に */
+            color: var(--text-color);
             z-index: 1;
-            white-space: nowrap; /* 一行を死守 */
-            letter-spacing: 0.02em;
+            white-space: nowrap; 
+            letter-spacing: 0.02em; /* ツール名の雰囲気に合わせて少し広めに */
         }
 
+        /* 文字の後ろのマーカー線（かわいさを残すアクセント） */
         h1::before {
             content: '';
             position: absolute;
@@ -67,7 +69,7 @@
             border-radius: 10px;
             z-index: -1;
         }
-        /* --- タイトル部分ここまで --- */
+        /* --- ここまでタイトル修正 --- */
 
         .info-container {
             width: 100%;
@@ -173,10 +175,10 @@
             left: 10px;
             font-size: 0.6rem;
             font-weight: bold;
+            background: var(--new-color);
             color: #fff;
             padding: 2px 6px;
             border-radius: 4px;
-            background: var(--new-color);
         }
 
         .icon {
@@ -197,13 +199,6 @@
             justify-content: center;
             gap: 6px;
             line-height: 1.4;
-        }
-
-        .status-text {
-            font-size: 0.75rem;
-            color: var(--sub-text-color);
-            margin-top: 8px;
-            font-weight: normal;
         }
 
         @media (max-width: 480px) {
@@ -295,17 +290,17 @@
         <div class="title">ツーショットシミュレーター</div>
     </a>
 
-    <div class="card coming-soon">
-        <div class="icon">❓</div>
-        <div class="title">🔒まだヒミツです🤫</div>
-        <div class="status-text">制作中...</div>
-    </div>
+    <a href="https://qwertyaz111.github.io/kiss-simulator/" class="card">
+        <div class="new-badge">NEW</div>
+        <div class="icon">💋</div>
+        <div class="title">キスシミュレーター</div>
+    </a>
 
-    <div class="card coming-soon">
-        <div class="icon">❓</div>
-        <div class="title">🔒まだヒミツです🤫</div>
-        <div class="status-text">制作中...</div>
-    </div>
+     <a href="https://qwertyaz111.github.io/aiaigasa-simulator/" class="card">
+        <div class="new-badge">NEW</div>
+        <div class="icon">☔</div>
+        <div class="title">相合傘シミュレーター</div>
+    </a>
 </div>
 
 </body>
