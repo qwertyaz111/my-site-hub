@@ -15,7 +15,7 @@
             --sub-text-color: #8c7b6a;
             --bg-color: #fdf6e3; 
             --card-bg: #ffffff;
-            --accent-glow: rgba(255, 204, 51, 0.3);
+            --accent-glow: rgba(255, 204, 51, 0.4);
             --new-color: #ff6b6b;
         }
 
@@ -28,7 +28,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 40px 20px;
+            padding: 12px 6px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -36,59 +36,56 @@
             -webkit-text-size-adjust: 100%;
         }
 
-        /* --- タイトル部分（下のツールと同じフォントに統一） --- */
+        /* --- タイトル部分 --- */
         header {
             text-align: center;
-            margin-bottom: 35px;
+            margin-bottom: 8px;
             width: 100%;
         }
 
         h1 {
-            /* 下の .title と同じ Noto Sans JP の 700(太字) を使用 */
             font-family: 'Noto Sans JP', sans-serif;
             font-weight: 700;
-            /* 画面幅に合わせて自動縮小し、一行を死守 */
-            font-size: clamp(1.1rem, 5.2vw, 2rem); 
+            font-size: clamp(1rem, 4.5vw, 1.4rem); 
             margin: 0 auto;
             position: relative;
             display: inline-block;
-            padding: 0 5px;
+            padding: 0 4px;
             color: var(--text-color);
             z-index: 1;
             white-space: nowrap; 
-            letter-spacing: 0.02em; /* ツール名の雰囲気に合わせて少し広めに */
+            letter-spacing: 0.01em;
         }
 
-        /* 文字の後ろのマーカー線（かわいさを残すアクセント） */
         h1::before {
             content: '';
             position: absolute;
-            bottom: 4px;
+            bottom: 2px;
             left: 0;
             width: 100%;
-            height: 10px;
+            height: 6px;
             background: rgba(255, 204, 51, 0.35);
             border-radius: 10px;
             z-index: -1;
         }
-        /* --- ここまでタイトル修正 --- */
 
+        /* --- 常に表示される超コンパクト案内エリア --- */
         .info-container {
             width: 100%;
-            max-width: 550px;
-            background: rgba(255, 255, 255, 0.8);
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(8px);
-            padding: 25px 20px;
-            border-radius: 20px;
-            margin-bottom: 40px;
-            border: 1px solid rgba(255, 204, 51, 0.2);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+            border-radius: 12px;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+            border: 1.5px solid rgba(255, 204, 51, 0.35);
+            box-shadow: 0 2px 6px rgba(92, 75, 58, 0.04);
             text-align: center;
         }
 
         .rule-text {
-            font-size: 0.9rem;
-            line-height: 1.8;
+            font-size: 0.72rem;
+            line-height: 1.35;
         }
 
         .warning {
@@ -97,18 +94,18 @@
         }
 
         .notice-text {
-            margin-top: 20px;
-            font-size: 0.85rem;
+            margin-top: 4px;
+            font-size: 0.68rem;
             color: var(--sub-text-color);
-            line-height: 1.6;
+            line-height: 1.25;
         }
 
         .sns-link {
-            margin-top: 15px;
+            margin-top: 4px;
             display: inline-block;
             color: var(--text-color);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.72rem;
             font-weight: 700;
             transition: opacity 0.2s;
         }
@@ -116,105 +113,68 @@
             opacity: 0.7;
         }
 
+        /* --- 3列固定カードコンテナ --- */
         .container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            max-width: 960px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 800px;
             width: 100%;
         }
 
+        /* --- かわいくリフレッシュしたカードデザイン --- */
         .card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 30px 15px;
+            background: linear-gradient(145deg, #ffffff, #fffdf8);
+            border-radius: 14px;
+            padding: 10px 4px 8px;
             text-decoration: none;
             color: inherit;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            border: 1px solid rgba(0, 0, 0, 0.02);
+            box-shadow: 0 3px 8px rgba(92, 75, 58, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+            border: 1.5px solid rgba(255, 204, 51, 0.25);
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
+            justify-content: center;
             text-align: center;
+            gap: 4px;
+            position: relative;
+            min-height: 64px;
         }
 
         .card:not(.coming-soon):hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px var(--accent-glow);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 14px var(--accent-glow);
             border-color: var(--primary-color);
         }
 
         .card.coming-soon {
             opacity: 0.7;
             cursor: default;
-            border: 1px dashed #dcd6a9;
+            border: 1.5px dashed #dcd6a9;
             background: rgba(255, 255, 255, 0.5);
-        }
-        
-        .card.coming-soon:hover {
-            transform: scale(0.98);
-        }
-
-        .card.coming-soon::after {
-            content: "COMING SOON";
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 0.6rem;
-            font-weight: bold;
-            background: #dcd6a9;
-            color: #fff;
-            padding: 2px 6px;
-            border-radius: 10px;
-            letter-spacing: 0.05em;
-        }
-
-        .new-badge {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 0.6rem;
-            font-weight: bold;
-            background: var(--new-color);
-            color: #fff;
-            padding: 2px 6px;
-            border-radius: 4px;
         }
 
         .icon {
-            font-size: 3rem;
-            margin-bottom: 12px;
-            transition: transform 0.3s ease;
-        }
-
-        .card:not(.coming-soon):hover .icon {
-            transform: scale(1.15) rotate(5deg);
+            font-size: 1.25rem;
+            line-height: 1;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
         }
 
         .title {
             font-weight: 700;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            line-height: 1.4;
+            font-size: 0.73rem;
+            line-height: 1.2;
+            word-break: break-word;
+            color: var(--text-color);
         }
 
         @media (max-width: 480px) {
-            body { padding: 30px 10px; }
-            .info-container { padding: 20px 15px; margin-bottom: 25px; }
-            .container { 
-                grid-template-columns: repeat(2, 1fr); 
-                gap: 12px; 
-            }
-            .card { padding: 20px 10px; border-radius: 18px; }
-            .icon { font-size: 2.5rem; margin-bottom: 8px; }
-            .title { font-size: 0.85rem; }
-            .rule-text { font-size: 0.8 digi; }
-            .notice-text { font-size: 0.75rem; }
+            body { padding: 8px 4px; }
+            .container { gap: 6px; }
+            .card { padding: 8px 3px 6px; min-height: 58px; border-radius: 12px; }
+            .icon { font-size: 1.1rem; }
+            .title { font-size: 0.65rem; letter-spacing: -0.02em; }
         }
     </style>
 </head>
@@ -269,7 +229,7 @@
         <div class="title">床ドンシミュレーター</div>
     </a>
 
-     <a href="https://qwertyaz111.github.io/3d-height-comparison/" class="card">
+    <a href="https://qwertyaz111.github.io/3d-height-comparison/" class="card">
         <div class="icon">📏</div>
         <div class="title">3D身長比較ツール</div>
     </a>
@@ -294,7 +254,7 @@
         <div class="title">キスシミュレーター</div>
     </a>
 
-     <a href="https://qwertyaz111.github.io/aiaigasa-simulator/" class="card">
+    <a href="https://qwertyaz111.github.io/aiaigasa-simulator/" class="card">
         <div class="icon">☔</div>
         <div class="title">相合傘シミュレーター</div>
     </a>
@@ -324,36 +284,35 @@
         <div class="title">膝枕シミュレーター</div>
     </a>
     
-     <a href="https://qwertyaz111.github.io/sharing-a-scarf-simulator/" class="card">
+    <a href="https://qwertyaz111.github.io/sharing-a-scarf-simulator/" class="card">
         <div class="icon">🧣</div>
         <div class="title">マフラーシミュレーター</div>
     </a>
     
-     <a href="https://qwertyaz111.github.io/piggyback-simulator/" class="card">
+    <a href="https://qwertyaz111.github.io/piggyback-simulator/" class="card">
         <div class="icon">🎒</div>
         <div class="title">おんぶシミュレーター</div>
     </a>
     
-     <a href="https://qwertyaz111.github.io/put-to-bed-simulator/" class="card">
+    <a href="https://qwertyaz111.github.io/put-to-bed-simulator/" class="card">
         <div class="icon">👶</div>
         <div class="title">寝かしつけシミュレーター</div>
     </a>    
 
-<a href="https://qwertyaz111.github.io/bookshelf-simulator/" class="card">
+    <a href="https://qwertyaz111.github.io/bookshelf-simulator/" class="card">
         <div class="icon">📚</div>
         <div class="title">本棚シミュレーター</div>
     </a>
 
-<a href="https://qwertyaz111.github.io/princess-carry-simulator/" class="card">
+    <a href="https://qwertyaz111.github.io/princess-carry-simulator/" class="card">
         <div class="icon">👸</div>
         <div class="title">お姫様抱っこシミュレーター</div>
     </a>
 
-<a href="https://qwertyaz111.github.io/leg-hold-simulator/" class="card">
+    <a href="https://qwertyaz111.github.io/leg-hold-simulator/" class="card">
         <div class="icon">🤲</div>
         <div class="title">膝抱っこシミュレーター</div>
     </a>
-
 </div>
 
 </body>
