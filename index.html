@@ -2,1696 +2,318 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>📦箱詰めシミュレーター</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>体格差ツール・シミュレーター一覧</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --panel-width: 300px; }
-        body { margin: 0; font-family: 'Helvetica Neue', Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; background: #ffffff; overflow: hidden; }
-        /* #ui-panel の更新 */
-        #ui-panel {
-            position: absolute; 
-            top: 10px; 
-            left: 10px; 
-            width: var(--panel-width);
-            max-height: calc(100vh - 20px);
-            max-height: calc(100dvh - 20px); /* 可変ビューポート対応 */
-            background: rgba(255, 255, 255, 0.95); 
-            padding: 15px; 
-            padding-bottom: 40px; 
-            border-radius: 15px; 
-            z-index: 100; 
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch; 
-            touch-action: pan-y; 
-            border: 1px solid rgba(255,255,255,0.3); 
-            backdrop-filter: blur(10px); 
-            -webkit-backdrop-filter: blur(10px);
+        :root {
+            --primary-color: #ffcc33; 
+            --secondary-color: #ffb347; 
+            --text-color: #5c4b3a; 
+            --sub-text-color: #8c7b6a;
+            --bg-color: #fdf6e3; 
+            --card-bg: #ffffff;
+            --accent-glow: rgba(255, 204, 51, 0.4);
+            --new-color: #ff6b6b;
+        }
+
+        * {
             box-sizing: border-box;
-            transition: all 0.2s ease-out;
-        }
-        #canvas-container { width: 100vw; height: 100vh; cursor: move; touch-action: none; }
-
-        @media screen and (max-width: 480px) { 
-            :root { --panel-width: calc(100vw - 20px); }
-            #ui-panel { left: 10px; right: 10px; }
-        }
-        
-        @media screen and (orientation: landscape) and (max-height: 500px) {
-            :root { --panel-width: 260px; }
-            #ui-panel { top: 5px; left: 5px; padding: 10px; max-height: calc(100vh - 10px); }
-            .app-title { font-size: 1.1rem; }
-            .input-group { padding: 8px; margin-bottom: 5px; }
         }
 
-        /* 折りたたんだ（閉じた）時の専用スタイル */
-        #ui-panel.collapsed {
-            max-height: none !important;
-            padding: 10px 15px !important;
-            overflow: hidden !important;
-            width: auto;
-            max-width: calc(100vw - 20px);
-        }
-
-        @media screen and (max-width: 480px) { 
-            /* スマホ表示で閉じた場合、右端の固定を解除してタイトルサイズへ収める */
-            #ui-panel.collapsed { right: auto; }
-        }
-
-        /* ヘッダーをパネル上部に固定（スクロールしても上に張り付く） */
-        .panel-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            cursor: pointer; 
-            user-select: none; 
-            gap: 10px; 
-            position: sticky; /* パネル内スクロール時も上に固定 */
-            top: -15px;       /* padding 分を相殺 */
-            background: rgba(255, 255, 255, 0.95);
-            padding: 10px 0;
-            margin: -15px -15px 10px -15px;
-            padding-left: 15px;
-            padding-right: 15px;
-            z-index: 10;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-        #toggle-text { 
-            font-size: 12px; 
-            font-weight: bold; 
-            color: #666; 
-            background: #eee; 
-            padding: 4px 10px; 
-            border-radius: 10px; 
-            white-space: nowrap; /* テキストの意図しない改行を防止 */
-        }
-        .collapsed #ui-content { display: none; }
-
-        .app-title { 
-            font-size: 1.2rem; 
-            margin: 0; 
-            color: #333; 
-            font-weight: bold; 
-            white-space: nowrap; /* タイトルの改行を防止 */
-        }
-        .app-description { font-size: 11px; color: #777; margin-top: 8px; margin-bottom: 5px; line-height: 1.5; text-align: center; }
-        
-        .app-disclaimer { 
-            font-size: 9px; 
-            color: #aaa; 
-            margin-bottom: 12px; 
-            line-height: 1.4; 
-            text-align: left;
-            background: #f9f9f9;
-            padding: 8px;
-            border-radius: 8px;
-        }
-
-        .input-group { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
-        .group-a { background: #fff5f0; border: 1px solid #ffe0d0; }
-        .group-b { background: #f0f7ff; border: 1px solid #d0e7ff; }
-        .group-layout { background: #f9f9f9; border: 1px solid #eee; }
-        .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
-        .section-header strong { font-size: 15px; color: #444; }
-        .input-row { display: flex; gap: 8px; align-items: flex-end; width: 100%; }
-        .input-item { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-        .hint { font-size: 10px; color: #999; margin-bottom: 2px; font-weight: bold; }
-        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background: white; color: #333; width: 100%; box-sizing: border-box; }
-        
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
+        body {
+            font-family: 'Noto Sans JP', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
+            padding: 12px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            -webkit-text-size-adjust: 100%;
         }
-        input[type="number"] { -moz-appearance: textfield; }
 
-        .color-picker { width: 100%; height: 38px; border: 2px solid #999; border-radius: 4px; cursor: pointer; padding: 0; background: none; appearance: none; -webkit-appearance: none; }
-        
-        /* ラジオボタン切替エリア（外枠・背景） */
-        .radio-switch { display: flex; gap: 4px; background: #eee; padding: 3px; border-radius: 8px; margin-top: 2px; }
-        /* 選択肢（ボタン部分）のベース */
-        .radio-switch label { flex: 1; text-align: center; font-size: 11px; font-weight: bold; padding: 6px 0; border-radius: 6px; cursor: pointer; color: #666; transition: 0.2s; user-select: none; }
-        /* 本来のラジオボタン丸アイコンを非表示にする */
-        .radio-switch input { display: none; }
-        /* 選択されている項目のスタイル（白背景＆影をつける） */
-        .radio-switch input:checked + label { background: white; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        /* --- タイトル部分 --- */
+        header {
+            text-align: center;
+            margin-bottom: 8px;
+            width: 100%;
+        }
 
-        .switch-btn { width: 100%; padding: 12px; background: #333; color: white; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; -webkit-tap-highlight-color: transparent; margin-bottom: 10px; }
-        .switch-btn:active { background: #000; transform: scale(0.98); }
-        .swap-btn { margin-bottom: 5px; }
+        h1 {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-weight: 700;
+            font-size: clamp(1rem, 4.5vw, 1.4rem); 
+            margin: 0 auto;
+            position: relative;
+            display: inline-block;
+            padding: 0 4px;
+            color: var(--text-color);
+            z-index: 1;
+            white-space: nowrap; 
+            letter-spacing: 0.01em;
+        }
 
-        .anim-controls {
-            display: flex;       
-            gap: 8px;            
+        h1::before {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 204, 51, 0.35);
+            border-radius: 10px;
+            z-index: -1;
+        }
+
+        /* --- 常に表示される超コンパクト案内エリア --- */
+        .info-container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            padding: 8px 10px;
             margin-bottom: 10px;
+            border: 1.5px solid rgba(255, 204, 51, 0.35);
+            box-shadow: 0 2px 6px rgba(92, 75, 58, 0.04);
+            text-align: center;
         }
-        .btn-anim {
-            flex: 1;             
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            background: #fff;
-            cursor: pointer;
-            font-size: 12px;
+
+        .rule-text {
+            font-size: 0.72rem;
+            line-height: 1.35;
+        }
+
+        .warning {
+            color: #e67e22;
             font-weight: bold;
         }
-        .btn-anim.active {
-            background: #333;
-            color: #fff;
-            border-color: #333;
+
+        .notice-text {
+            margin-top: 4px;
+            font-size: 0.68rem;
+            color: var(--sub-text-color);
+            line-height: 1.25;
         }
 
-        .share-btn { 
-            width: 100%; padding: 12px; background: #000; color: white; border: none; border-radius: 10px; 
-            font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px; 
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            text-decoration: none; margin-top: 10px;
+        .sns-link {
+            margin-top: 4px;
+            display: inline-block;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.72rem;
+            font-weight: 700;
+            transition: opacity 0.2s;
         }
-        .share-btn:active { transform: scale(0.98); opacity: 0.8; }
-
-        .other-tools-link { margin-top: 20px; padding: 10px; background: #f9f9f9; border-radius: 10px; text-align: center; }
-        .other-tools-link a { text-decoration: none; color: #333; font-size: 12px; font-weight: bold; border: 2px solid #333; padding: 8px 15px; border-radius: 30px; display: inline-block; transition: 0.3s; margin: 4px; }
-        .other-tools-link a:hover { background: #333; color: #fff; }
-
-        .usage-notes { font-size: 10px; color: #999; margin-top: 12px; line-height: 1.5; text-align: center; }
-
-        .info-box { background: #ffffff; padding: 15px; border-radius: 12px; margin-top: 12px; border: 1px solid #eee; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
-        .info-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; }
-        .info-row:not(:last-child) { border-bottom: 1px dashed #eee; margin-bottom: 4px; }
-        .info-label { color: #555; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px; }
-        .info-value { font-weight: 800; font-size: 18px; color: #2c3e50; font-variant-numeric: tabular-nums; }
-        .unit { font-size: 11px; margin-left: 3px; color: #7f8c8d; font-weight: normal; }
-        
-        #view-label { 
-            position: absolute; 
-            bottom: 20px; 
-            right: 15px; 
-            background: rgba(0,0,0,0.7); 
-            color: white; 
-            padding: 8px 16px; 
-            border-radius: 20px; 
-            font-size: 12px; 
-            font-weight: bold; 
-            z-index: 90; 
-            pointer-events: none; 
+        .sns-link:hover {
+            opacity: 0.7;
         }
-        .crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 2px solid rgba(0,0,0,0.15); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+
+        /* --- 3列固定カードコンテナ --- */
+        .container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        /* --- かわいくリフレッシュしたカードデザイン --- */
+        .card {
+            background: linear-gradient(145deg, #ffffff, #fffdf8);
+            border-radius: 14px;
+            padding: 10px 4px 8px;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 3px 8px rgba(92, 75, 58, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+            border: 1.5px solid rgba(255, 204, 51, 0.25);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 4px;
+            position: relative;
+            min-height: 64px;
+        }
+
+        .card:not(.coming-soon):hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 14px var(--accent-glow);
+            border-color: var(--primary-color);
+        }
+
+        .card.coming-soon {
+            opacity: 0.7;
+            cursor: default;
+            border: 1.5px dashed #dcd6a9;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .icon {
+            font-size: 1.25rem;
+            line-height: 1;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+        }
+
+        .title {
+            font-weight: 700;
+            font-size: 0.73rem;
+            line-height: 1.2;
+            word-break: break-word;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 8px 4px; }
+            .container { gap: 6px; }
+            .card { padding: 8px 3px 6px; min-height: 58px; border-radius: 12px; }
+            .icon { font-size: 1.1rem; }
+            .title { font-size: 0.65rem; letter-spacing: -0.02em; }
+        }
     </style>
 </head>
 <body>
 
-<div id="ui-panel">
-    <div class="panel-header" onclick="togglePanel()">
-        <h1 class="app-title">📦箱詰めシミュレーター</h1>
-        <span id="toggle-text">閉じる</span>
+<header>
+    <h1>体格差ツール・シミュレーター一覧</h1>
+</header>
+
+<div class="info-container">
+    <div class="rule-text">
+        スクショ投稿や加工、トレース等はご自由にお楽しみください。<br>
+        <span class="warning">※営利目的や商用利用はご遠慮ください。</span>
+    </div>
+    
+    <div class="notice-text">
+        新しいツールも準備ができ次第、順次追加予定です。<br>
+        ご意見・ご感想などはマシュマロやDMまでお寄せください。
     </div>
 
-    <div id="ui-content">
-        <p class="app-description">性別と身長から、二人を箱に詰めてシミュレーションします。<br>体どうし・箱にめり込まないよう、ポーズは自動で最適化されます。</p>
-        
-        <div class="input-group group-a">
-            <div class="section-header"><strong>A</strong></div>
-            <div class="input-row">
-                <div class="input-item"><span class="hint">名前</span><input type="text" id="nameA" placeholder="名前A" oninput="updateScene()"></div>
-                <div class="input-item" style="flex: 0.6;"><span class="hint">性別</span><select id="genderA" onchange="updateScene()"><option value="male">男</option><option value="female" selected>女</option></select></div>
-            </div>
-            <div class="input-row">
-                <div class="input-item"><span class="hint">身長 (cm)</span><input type="number" id="heightA" value="158.0" step="0.1" oninput="updateScene()"></div>
-                <div class="input-item" style="flex: 0.35;"><span class="hint">色</span><input type="color" id="colorA" class="color-picker" value="#ffcc99" oninput="updateScene()"></div>
-            </div>
-        </div>
-
-        <div class="input-group group-b">
-            <div class="section-header"><strong>B</strong></div>
-            <div class="input-row">
-                <div class="input-item"><span class="hint">名前</span><input type="text" id="nameB" placeholder="名前B" oninput="updateScene()"></div>
-                <div class="input-item" style="flex: 0.6;"><span class="hint">性別</span><select id="genderB" onchange="updateScene()"><option value="male" selected>男</option><option value="female">女</option></select></div>
-            </div>
-            <div class="input-row">
-                <div class="input-item"><span class="hint">身長 (cm)</span><input type="number" id="heightB" value="171.5" step="0.1" oninput="updateScene()"></div>
-                <div class="input-item" style="flex: 0.35;"><span class="hint">色</span><input type="color" id="colorB" class="color-picker" value="#ffad60" oninput="updateScene()"></div>
-            </div>
-        </div>
-
-        <div class="input-group group-layout">
-            <div class="section-header"><strong>📦 箱</strong></div>
-            <div class="input-item">
-                <span class="hint">箱のサイズ</span>
-                <div class="radio-switch">
-                    <input type="radio" name="boxMode" id="boxModeAuto" value="auto" checked onchange="updateScene()"><label for="boxModeAuto">自動（ぴったり）</label>
-                    <input type="radio" name="boxMode" id="boxModeManual" value="manual" onchange="updateScene()"><label for="boxModeManual">手動</label>
-                </div>
-            </div>
-            <div class="input-row" id="boxManual" style="display:none;">
-                <div class="input-item"><span class="hint">幅 (cm)</span><input type="number" id="boxW" value="90" step="1" oninput="updateScene()"></div>
-                <div class="input-item"><span class="hint">奥行 (cm)</span><input type="number" id="boxD" value="90" step="1" oninput="updateScene()"></div>
-                <div class="input-item"><span class="hint">高さ (cm)</span><input type="number" id="boxH" value="100" step="1" oninput="updateScene()"></div>
-            </div>
-            <div class="input-item">
-                <span class="hint">フタ</span>
-                <div class="radio-switch">
-                    <input type="radio" name="lidMode" id="lidOff" value="off" checked onchange="updateScene()"><label for="lidOff">なし</label>
-                    <input type="radio" name="lidMode" id="lidOn" value="on" onchange="updateScene()"><label for="lidOn">あり</label>
-                </div>
-            </div>
-            <div class="input-item">
-                <span class="hint">ポーズ</span>
-                <select id="poseFamily" onchange="onPoseSelect()">
-                    <option value="auto" selected>おまかせ（自動で最適化）</option>
-                    <option value="between">膝の間に座る（向かい合わない）</option>
-                    <option value="betweenF">膝の間に座る（向かい合う）</option>
-                    <option value="laplap">膝の上に座る（向かい合わない）</option>
-                    <option value="laplapF">膝の上に座る（向かい合う）</option>
-                    <option value="facingKnees">向かい合って座る（体操座り）</option>
-                    <option value="facingWrap">向かい合って座る（脚で挟む）</option>
-                    <option value="cradle">横抱きで座る</option>
-                    <option value="side">並んで座る</option>
-                    <option value="lying">寝そべる</option>
-                </select>
-            </div>
-            <button class="switch-btn" style="margin: 4px 0 0 0;" onclick="reroll()">🎲 別のポーズを探す</button>
-        </div>
-
-        <div style="padding: 0 5px;">
-            <button class="switch-btn swap-btn" onclick="swapAB()">⇄ AとBを入れ替える</button>
-            <button class="switch-btn" onclick="switchView()">🔄 視点を切り替える</button>
-        </div>
-        
-        <div id="info-container">
-            <div class="info-box" id="info"></div>
-            <button class="share-btn" onclick="shareToX()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>で結果をシェアする
-            </button>
-            <div class="other-tools-link">
-                <p style="font-size: 10px; color: #888; margin-bottom: 8px;">こちらもチェック❣🤩</p>
-                <a href="https://qwertyaz111.github.io/my-site-hub/">ツール・シミュレーター一覧</a>
-            </div>
-            <div class="usage-notes">
-                スクショ投稿や加工、トレース等はご自由にお楽しみください。<br>
-                ※営利目的や商用利用はご遠慮ください。
-            </div>
-        </div>
-    </div>
+    <a href="https://x.com/qwertyaz111" class="sns-link" target="_blank" rel="noopener noreferrer">𝕏 (旧Twitter)はこちら</a>
 </div>
 
-<div id="view-label">三人称視点</div>
-<div class="crosshair" id="crosshair" style="display:none;"></div>
-<div id="canvas-container"></div>
+<div class="container">
+    <a href="https://qwertyaz111.github.io/hand-size-comparison/" class="card">
+        <div class="icon">✋</div>
+        <div class="title">手の大きさ比較ツール</div>
+    </a>
 
-<script type="module">
-import * as THREE from 'https://unpkg.com/three@0.158.0/build/three.module.js';
+    <a href="https://qwertyaz111.github.io/foot-size-comparison/" class="card">
+        <div class="icon">🦶</div>
+        <div class="title">足の大きさ比較ツール</div>
+    </a>
 
-let scene, camera, renderer, clock;
-let personA, personB, walkGroup;
-let currentView = '3rd';
-let carrySide = 1; // 三人称視点の初期の向き（1＝固定。配置設定は削除済み）
-let boxGroup;                       // 透明な箱
-let currentBox = { W: 0.9, D: 0.9, H: 1.1 };   // 現在の箱の内寸(m)
-let solverRun = null, solverTimer = null, solveToken = 0, pendingKey = '';
-let lastResult = null, lastKey = '', solving = false, variantSeed = 1;
-let diceAuto = false, rerollPending = false;   // 🎲で探したポーズをポーズ欄に映している間は true（このときは全ポーズから探す）
-let scanRun = null, scanParams = null, scanDoneKey = '';   // 「この身長で成り立つポーズ」を調べる裏処理
-const FAMILY_NAMES = {
-    between: '膝の間に座る（向かい合わない）', betweenF: '膝の間に座る（向かい合う）',
-    laplap: '膝の上に座る（向かい合わない）', laplapF: '膝の上に座る（向かい合う）',
-    facingKnees: '向かい合って座る（体操座り）', facingWrap: '向かい合って座る（脚で挟む）',
-    cradle: '横抱きで座る', side: '並んで座る', lying: '寝そべる'
-};
-const DEFAULT_ROT_3RD = { x: 0.2, y: 0.45 }; // 三人称の初期は斜め前から見る
-let rotation = { x: DEFAULT_ROT_3RD.x, y: DEFAULT_ROT_3RD.y }, camDist = 2.4, isDragging = false, previousTouch = null, initialPinchDist = null;
+    <a href="https://qwertyaz111.github.io/eye-level-simulator/" class="card">
+        <div class="icon">👀</div>
+        <div class="title">目線差シミュレーター</div>
+    </a>
 
-function init() {
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
+    <a href="https://qwertyaz111.github.io/shared-shirt-simulator/" class="card">
+        <div class="icon">👔</div>
+        <div class="title">彼シャツシミュレーター</div>
+    </a>
 
-    camera = new THREE.PerspectiveCamera(
-        50,
-        window.innerWidth / window.innerHeight,
-        0.01,
-        1000
-    );
+    <a href="https://qwertyaz111.github.io/stroll-date-simulator/" class="card">
+        <div class="icon">👣</div>
+        <div class="title">おさんぽシミュレーター</div>
+    </a>
 
-    camera.rotation.order = 'YXZ';
+    <a href="https://qwertyaz111.github.io/kabedon-floor-simulator/" class="card">
+        <div class="icon">💓</div>
+        <div class="title">床ドンシミュレーター</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/3d-height-comparison/" class="card">
+        <div class="icon">📏</div>
+        <div class="title">3D身長比較ツール</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/hug-simulator/" class="card">
+        <div class="icon">🫂</div>
+        <div class="title">ハグシミュレーター</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/cuddling-simulator/" class="card">
+        <div class="icon">💤</div>
+        <div class="title">添い寝シミュレーター</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/couple-pic-simulator/" class="card">
+        <div class="icon">🤳</div>
+        <div class="title">ツーショットシミュレーター</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/kiss-simulator/" class="card">
+        <div class="icon">💋</div>
+        <div class="title">キスシミュレーター</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/aiaigasa-simulator/" class="card">
+        <div class="icon">☔</div>
+        <div class="title">相合傘シミュレーター</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/purikura-simulator/" class="card">
+        <div class="icon">📸</div>
+        <div class="title">プリクラシミュレーター</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/sitting-simulator/" class="card">
+        <div class="icon">🪑</div>
+        <div class="title">お座りシミュレーター</div>
+    </a>
+
+    <a href="https://qwertyaz111.github.io/kabedon-simulator/" class="card">
+        <div class="icon">🧱</div>
+        <div class="title">壁ドンシミュレーター</div>
+    </a>
     
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    document.getElementById('canvas-container')
-        .appendChild(renderer.domElement);
-
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x888888, 2.5));
-    scene.add(new THREE.GridHelper(200, 400, 0xeeeeee, 0xf5f5f5));
-
-    walkGroup = new THREE.Group();
-    scene.add(walkGroup);
-    boxGroup = new THREE.Group();
-    scene.add(boxGroup);
-
-    clock = new THREE.Clock();
-
-    setupControls();
-
-    window.addEventListener('resize', onWindowResize);
+    <a href="https://qwertyaz111.github.io/stay-at-home-date-simulator/" class="card">
+        <div class="icon">🏠</div>
+        <div class="title">お家デートシミュレーター</div>
+    </a>
     
-    window.updateScene = updateScene;
-    window.switchView = switchView;
-    window.swapAB = swapAB;
-    window.shareToX = shareToX;
-    window.reroll = reroll;
-    window.onPoseSelect = onPoseSelect;
-
-    window.togglePanel = () => {
-        const panel = document.getElementById('ui-panel');
-        const text = document.getElementById('toggle-text');
-        panel.classList.toggle('collapsed');
-        text.innerText = panel.classList.contains('collapsed') ? '開く' : '閉じる';
-    };
-
-    // 入力フォームからフォーカスが外れた際に、パネルのスクロール位置を上部へリセットする
-    document.querySelectorAll('#ui-panel input, #ui-panel select').forEach(element => {
-        element.addEventListener('blur', () => {
-            const panel = document.getElementById('ui-panel');
-            if (panel) {
-                panel.scrollTop = 0;
-            }
-            // iOS Safari等の画面全体のズレ防止策
-            window.scrollTo(0, 0);
-        });
-    });
-
-    updateScene();
-    animate();
-}
-
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-function swapAB() {
-    const fields = ['name', 'gender', 'height', 'color'];
-    fields.forEach(field => {
-        const elA = document.getElementById(field + 'A');
-        const elB = document.getElementById(field + 'B');
-        const tmp = elA.value;
-        elA.value = elB.value;
-        elB.value = tmp;
-    });
-    updateScene();
-}
-
-function createMannequin(color, heightCm, gender, name, role, otherConfig) {
-    const group = new THREE.Group();
-    const h = heightCm * 0.01;
-    const bodyMat = new THREE.MeshPhongMaterial({
-        color: color,
-        transparent: true,
-        opacity: 0.85
-    });
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
-
-    const headH = h * 0.13;
-    const neckH = h * 0.05;
-    const torsoH = h * 0.37;
-    const legH = h * 0.45;
-    const eyeY = h * 0.94;
-    const torsoW = (gender === 'male' ? 0.26 : 0.21) * (h/1.7);
-    const torsoDepth = torsoW * 0.5;
-
-    const headBox = new THREE.Group();
-    headBox.position.y = eyeY;
-    const head = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.8, 16, 16), bodyMat);
-    head.position.y = (h - headH * 0.5) - eyeY;
-    headBox.add(head);
-
-    [-1, 1].forEach(side => {
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(headH * 0.12, 12, 12), eyeMat);
-        eye.position.set(side * (headH * 0.28), 0, (headH * 0.7));
-        headBox.add(eye);
-    });
-    group.add(headBox);
-    group.headParts = headBox;
-
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(headH*0.3, headH*0.3, neckH, 16), bodyMat);
-    neck.position.y = h - headH - (neckH * 0.5);
-    group.add(neck);
-
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(torsoW, torsoH, torsoDepth), bodyMat);
-    torso.position.y = legH + (torsoH * 0.5);
-    group.add(torso);
-
-    group.arms = [];
-    const armThickness = torsoW * 0.3;
-    const shoulderW = (torsoW * 0.5) + (armThickness * 0.2); // 肩の回転軸を胴体の側面ぎりぎりに置いて、腕を動かしても胴体から離れすぎないようにする（大きいほど離れる）
-    const shoulderY = legH + torsoH - (torsoW * 0.15); 
-    const armLen = h * 0.38;
-
-    [-1, 1].forEach(side => {
-        const anchor = new THREE.Group();
-        anchor.position.set(side * shoulderW, shoulderY, 0);
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(armThickness, armLen, torsoW*0.3), bodyMat);
-        mesh.position.y = -armLen * 0.5;
-        anchor.add(mesh);
-        group.add(anchor);
-        group.arms.push(anchor);
-    });
-
-    group.legs = [];
-    [-1, 1].forEach(side => {
-        const anchor = new THREE.Group();
-        anchor.position.set( side * (torsoW * 0.25), legH, 0 );
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry( torsoW*0.4, legH, torsoW*0.4 ), bodyMat);
-        mesh.position.y = -legH * 0.5;
-        anchor.add(mesh);
-        group.add(anchor);
-        group.legs.push(anchor);
-    });
-
-    const canvas = document.createElement('canvas');
-    canvas.width = 512; canvas.height = 128;
-    const ctx = canvas.getContext('2d');
-    ctx.font = "bold 45px sans-serif"; ctx.fillStyle = "#333"; ctx.textAlign = "center";
-    const displayName = name || (role === 'B' ? 'B' : 'A');
-    ctx.fillText(`${displayName} (${heightCm.toFixed(1)}cm)`, 256, 64);
-    const spriteMaterial = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) });
-    const sprite = new THREE.Sprite(spriteMaterial);
-    sprite.scale.set(1.5, 0.38, 1);
-    sprite.position.y = h + 0.3;
-    group.add(sprite);
-    group.nameTag = sprite;
-
-    group.userData = { height: h, eyeY: eyeY, role: role, depth: torsoDepth, width: torsoW, armThick: armThickness, legH: legH, torsoH: torsoH, shoulderW: shoulderW, shoulderY: shoulderY };
-    group.position.y = 0; group.position.z = 0;
-    return group;
-}
-
-// ===================================================================
-// 箱詰めソルバー：体どうし・箱にめり込まず、関節が不自然に曲がらない姿勢を自動で探す
-// （three.jsには依存しない計算部分。腕・脚は2分割の箱形状でそのまま衝突判定している）
-// ===================================================================
-// ================= 箱詰めソルバー（three.jsに依存しない純粋な数学） =================
-const PI = Math.PI;
-function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-function gauss(r){let u=0,v=0;while(u===0)u=r();while(v===0)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*PI*v);}
-function clampN(v,a,b){return v<a?a:(v>b?b:v);}
-
-// ----- クォータニオン [x,y,z,w] -----
-function qMul(a,b){return [a[3]*b[0]+a[0]*b[3]+a[1]*b[2]-a[2]*b[1], a[3]*b[1]-a[0]*b[2]+a[1]*b[3]+a[2]*b[0], a[3]*b[2]+a[0]*b[1]-a[1]*b[0]+a[2]*b[3], a[3]*b[3]-a[0]*b[0]-a[1]*b[1]-a[2]*b[2]];}
-function qX(a){return [Math.sin(a/2),0,0,Math.cos(a/2)];}
-function qY(a){return [0,Math.sin(a/2),0,Math.cos(a/2)];}
-function qZ(a){return [0,0,Math.sin(a/2),Math.cos(a/2)];}
-function qInv(q){return [-q[0],-q[1],-q[2],q[3]];}
-function qRot(q,v){
-    const x=q[0],y=q[1],z=q[2],w=q[3];
-    const ix=w*v[0]+y*v[2]-z*v[1], iy=w*v[1]+z*v[0]-x*v[2], iz=w*v[2]+x*v[1]-y*v[0], iw=-x*v[0]-y*v[1]-z*v[2];
-    return [ix*w+iw*-x+iy*-z-iz*-y, iy*w+iw*-y+iz*-x-ix*-z, iz*w+iw*-z+ix*-y-iy*-x];
-}
-function qAxes(q){
-    const x=q[0],y=q[1],z=q[2],w=q[3];
-    const xx=x*x,yy=y*y,zz=z*z,xy=x*y,xz=x*z,yz=y*z,wx=w*x,wy=w*y,wz=w*z;
-    return [1-2*(yy+zz),2*(xy+wz),2*(xz-wy), 2*(xy-wz),1-2*(xx+zz),2*(yz+wx), 2*(xz+wy),2*(yz-wx),1-2*(xx+yy)];
-}
-function vAdd(a,b){return [a[0]+b[0],a[1]+b[1],a[2]+b[2]];}
-function vScale(a,s){return [a[0]*s,a[1]*s,a[2]*s];}
-// 真下向きの棒を d の向きへ回す（three.jsのaim()と同じ：回転順XYZ）
-function qAim(d){
-    const l=Math.hypot(d[0],d[1],d[2])||1;
-    const dx=d[0]/l, dy=d[1]/l, dz=d[2]/l;
-    return qMul(qX(Math.atan2(-dz,-dy)), qZ(Math.asin(clampN(dx,-1,1))));
-}
-
-// ----- 体の寸法（createMannequinと同じ比率） -----
-function makeDims(heightCm, gender){
-    const h=heightCm*0.01, headH=h*0.13, neckH=h*0.05, torsoH=h*0.37, legH=h*0.45;
-    const torsoW=(gender==='male'?0.26:0.21)*(h/1.7), torsoD=torsoW*0.5;
-    const armT=torsoW*0.3, legT=torsoW*0.4;
-    const shoulderW=torsoW*0.5+armT*0.2;
-    const shoulderY=legH+torsoH-torsoW*0.15;
-    return {h,headH,neckH,torsoH,legH,torsoW,torsoD,armT,legT,shoulderW,
-        shoulderYRel:shoulderY-legH, armHalf:h*0.38/2, legHalf:legH/2, headR:headH*0.8,
-        headYRel:h-headH*0.5-legH, legX:torsoW*0.25};
-}
-
-// ----- 姿勢パラメーター -----
-// 体: [px,py,pz,yaw,pitch,roll, 背骨前後,背骨左右,背骨ひねり, 左脚(股屈曲,開き,ひねり,膝), 右脚(同)]
-const GN=17;
-const G_LO=[-3,0,-3,-1e9,-1.8,-1.8,-0.5,-0.5,-0.8, -0.5,-0.35,-1.0,0, -0.5,-0.35,-1.0,0];
-const G_HI=[ 3,3, 3, 1e9, 1.8, 1.8, 1.25,0.5,0.8,  2.1,1.0,1.2,2.55,  2.1,1.0,1.2,2.55];
-const G_SIG=[0.05,0.03,0.05,0.25,0.25,0.15,0.18,0.12,0.2, 0.25,0.15,0.25,0.3, 0.25,0.15,0.25,0.3];
-// 腕: [左(肩前,肩開き,肩ひねり,肘), 右(同)]
-const A_LO=[-0.9,-0.5,-1.2,0, -0.9,-0.5,-1.2,0];
-const A_HI=[ 2.9, 2.6, 1.2,2.5,  2.9, 2.6, 1.2,2.5];
-const ARM_NEUTRAL=[0.15,0.3,0,0.45, 0.15,0.3,0,0.45];
-
-function limbDirsArm(arm,i){
-    const s=i===0?-1:1, o=i*4;
-    const f=arm[o],a=arm[o+1],r=arm[o+2],e=arm[o+3];
-    const Rh=qMul(qMul(qZ(s*a),qX(-f)),qY(-s*r));
-    return {dU:qRot(Rh,[0,-1,0]), dL:qRot(qMul(Rh,qX(-e)),[0,-1,0])};
-}
-function limbDirsLeg(g,i){
-    const s=i===0?-1:1, o=9+i*4;
-    const flex=g[o],abd=g[o+1],ext=g[o+2],knee=g[o+3];
-    const Rh=qMul(qMul(qZ(s*abd),qX(-flex)),qY(-s*ext));
-    return {dU:qRot(Rh,[0,-1,0]), dL:qRot(qMul(Rh,qX(knee)),[0,-1,0])};
-}
-function rootQ(g){return qMul(qMul(qY(g[3]),qX(g[4])),qZ(g[5]));}
-function spineQ(g){return qMul(qMul(qX(g[6]),qZ(g[7])),qY(g[8]));}
-
-// ----- 当たり判定用パーツ -----
-function mkObb(c,q,e){
-    const a=qAxes(q);
-    const ex=e[0]*Math.abs(a[0])+e[1]*Math.abs(a[3])+e[2]*Math.abs(a[6]);
-    const ey=e[0]*Math.abs(a[1])+e[1]*Math.abs(a[4])+e[2]*Math.abs(a[7]);
-    const ez=e[0]*Math.abs(a[2])+e[1]*Math.abs(a[5])+e[2]*Math.abs(a[8]);
-    return {s:false,c,a,e,ex,ey,ez,br:Math.hypot(e[0],e[1],e[2])};
-}
-function mkSphere(c,r){return {s:true,c,r,ex:r,ey:r,ez:r,br:r};}
-// 腕・脚（2分割＋関節）
-function limb(frameQ,origin,dU,dL,half,t,P,idx){
-    const qU=qAim(dU);
-    const qa=qMul(frameQ,qU);
-    const downU=qRot(qa,[0,-1,0]);
-    const dLloc=qRot(qInv(qU),dL);
-    const qb=qMul(qa,qAim(dLloc));
-    const downL=qRot(qb,[0,-1,0]);
-    const knee=vAdd(origin,vScale(downU,half));
-    P[idx]=mkObb(vAdd(origin,vScale(downU,half/2)),qa,[t/2,half/2,t/2]);
-    P[idx+1]=mkObb(vAdd(knee,vScale(downL,half/2)),qb,[t/2,half/2,t/2]);
-    return vAdd(knee,vScale(downL,half));
-}
-// 0胴 1頭 2左上腕 3左前腕 4右上腕 5右前腕 6左もも 7左すね 8右もも 9右すね
-function buildBody(d,g,arm){
-    const Rr=rootQ(g), Rt=qMul(Rr,spineQ(g));
-    const hip=[g[0],g[1],g[2]];
-    const P=new Array(10);
-    P[0]=mkObb(vAdd(hip,qRot(Rt,[0,d.torsoH/2,0])),Rt,[d.torsoW/2,d.torsoH/2,d.torsoD/2]);
-    P[1]=mkSphere(vAdd(hip,qRot(Rt,[0,d.headYRel,0])),d.headR);
-    P.hands=[null,null]; P.feet=[null,null];
-    for(let i=0;i<2;i++){
-        const s=i===0?-1:1;
-        const sh=vAdd(hip,qRot(Rt,[s*d.shoulderW,d.shoulderYRel,0]));
-        const dr=limbDirsArm(arm,i);
-        P.hands[i]=limb(Rt,sh,dr.dU,dr.dL,d.armHalf,d.armT,P,2+i*2);
-    }
-    for(let i=0;i<2;i++){
-        const s=i===0?-1:1;
-        const an=vAdd(hip,qRot(Rr,[s*d.legX,0,0]));
-        const dr=limbDirsLeg(g,i);
-        P.feet[i]=limb(Rr,an,dr.dU,dr.dL,d.legHalf,d.legT,P,6+i*2);
-    }
-    P.hip=hip; P.Rt=Rt;
-    return P;
-}
-
-// ----- 衝突の深さ -----
-function obbDepth(A,B){
-    const t0=B.c[0]-A.c[0], t1=B.c[1]-A.c[1], t2=B.c[2]-A.c[2];
-    const a=A.a,b=B.a,ea=A.e,eb=B.e;
-    let best=1e9;
-    for(let i=0;i<3;i++){
-        const ax=a[3*i],ay=a[3*i+1],az=a[3*i+2];
-        const dist=Math.abs(t0*ax+t1*ay+t2*az);
-        const rb=eb[0]*Math.abs(ax*b[0]+ay*b[1]+az*b[2])+eb[1]*Math.abs(ax*b[3]+ay*b[4]+az*b[5])+eb[2]*Math.abs(ax*b[6]+ay*b[7]+az*b[8]);
-        const ov=ea[i]+rb-dist; if(ov<=0) return 0; if(ov<best) best=ov;
-    }
-    for(let j=0;j<3;j++){
-        const bx=b[3*j],by=b[3*j+1],bz=b[3*j+2];
-        const dist=Math.abs(t0*bx+t1*by+t2*bz);
-        const ra=ea[0]*Math.abs(bx*a[0]+by*a[1]+bz*a[2])+ea[1]*Math.abs(bx*a[3]+by*a[4]+bz*a[5])+ea[2]*Math.abs(bx*a[6]+by*a[7]+bz*a[8]);
-        const ov=eb[j]+ra-dist; if(ov<=0) return 0; if(ov<best) best=ov;
-    }
-    for(let i=0;i<3;i++){
-        const ax=a[3*i],ay=a[3*i+1],az=a[3*i+2];
-        for(let j=0;j<3;j++){
-            const bx=b[3*j],by=b[3*j+1],bz=b[3*j+2];
-            let nx=ay*bz-az*by, ny=az*bx-ax*bz, nz=ax*by-ay*bx;
-            const l=Math.sqrt(nx*nx+ny*ny+nz*nz);
-            if(l<1e-3) continue;
-            nx/=l;ny/=l;nz/=l;
-            const dist=Math.abs(t0*nx+t1*ny+t2*nz);
-            const ra=ea[0]*Math.abs(nx*a[0]+ny*a[1]+nz*a[2])+ea[1]*Math.abs(nx*a[3]+ny*a[4]+nz*a[5])+ea[2]*Math.abs(nx*a[6]+ny*a[7]+nz*a[8]);
-            const rb=eb[0]*Math.abs(nx*b[0]+ny*b[1]+nz*b[2])+eb[1]*Math.abs(nx*b[3]+ny*b[4]+nz*b[5])+eb[2]*Math.abs(nx*b[6]+ny*b[7]+nz*b[8]);
-            const ov=ra+rb-dist; if(ov<=0) return 0; if(ov<best) best=ov;
-        }
-    }
-    return best;
-}
-// 符号つき距離（正＝離れている：SATの最大分離量、負＝めり込み）
-function obbSep(A,B){
-    const t0=B.c[0]-A.c[0], t1=B.c[1]-A.c[1], t2=B.c[2]-A.c[2];
-    const a=A.a,b=B.a,ea=A.e,eb=B.e;
-    let best=-1e9;
-    for(let i=0;i<3;i++){
-        const ax=a[3*i],ay=a[3*i+1],az=a[3*i+2];
-        const dist=Math.abs(t0*ax+t1*ay+t2*az);
-        const rb=eb[0]*Math.abs(ax*b[0]+ay*b[1]+az*b[2])+eb[1]*Math.abs(ax*b[3]+ay*b[4]+az*b[5])+eb[2]*Math.abs(ax*b[6]+ay*b[7]+az*b[8]);
-        const s=dist-ea[i]-rb; if(s>best) best=s;
-    }
-    for(let j=0;j<3;j++){
-        const bx=b[3*j],by=b[3*j+1],bz=b[3*j+2];
-        const dist=Math.abs(t0*bx+t1*by+t2*bz);
-        const ra=ea[0]*Math.abs(bx*a[0]+by*a[1]+bz*a[2])+ea[1]*Math.abs(bx*a[3]+by*a[4]+bz*a[5])+ea[2]*Math.abs(bx*a[6]+by*a[7]+bz*a[8]);
-        const s=dist-eb[j]-ra; if(s>best) best=s;
-    }
-    return best;
-}
-function sphereObbDepth(S,O){
-    const dx=S.c[0]-O.c[0],dy=S.c[1]-O.c[1],dz=S.c[2]-O.c[2];
-    const a=O.a,e=O.e;
-    const l0=dx*a[0]+dy*a[1]+dz*a[2], l1=dx*a[3]+dy*a[4]+dz*a[5], l2=dx*a[6]+dy*a[7]+dz*a[8];
-    const c0=clampN(l0,-e[0],e[0]), c1=clampN(l1,-e[1],e[1]), c2=clampN(l2,-e[2],e[2]);
-    const q0=l0-c0,q1=l1-c1,q2=l2-c2;
-    const d2=q0*q0+q1*q1+q2*q2;
-    if(d2>1e-12){const dd=Math.sqrt(d2); return S.r-dd>0?S.r-dd:0;}
-    const m=Math.min(e[0]-Math.abs(l0),e[1]-Math.abs(l1),e[2]-Math.abs(l2));
-    return S.r+m;
-}
-function pairDepth(P,Q){
-    const dx=P.c[0]-Q.c[0],dy=P.c[1]-Q.c[1],dz=P.c[2]-Q.c[2];
-    const rr=P.br+Q.br;
-    if(dx*dx+dy*dy+dz*dz>=rr*rr) return 0;
-    if(P.s){
-        if(Q.s){const d=Math.sqrt(dx*dx+dy*dy+dz*dz);const v=P.r+Q.r-d;return v>0?v:0;}
-        return sphereObbDepth(P,Q);
-    }
-    if(Q.s) return sphereObbDepth(Q,P);
-    return obbDepth(P,Q);
-}
-// 点とOBB表面の距離
-function pointObbDist(p,O){
-    const dx=p[0]-O.c[0],dy=p[1]-O.c[1],dz=p[2]-O.c[2];
-    if(O.s){return Math.max(0,Math.sqrt(dx*dx+dy*dy+dz*dz)-O.r);}
-    const a=O.a,e=O.e;
-    const l0=dx*a[0]+dy*a[1]+dz*a[2], l1=dx*a[3]+dy*a[4]+dz*a[5], l2=dx*a[6]+dy*a[7]+dz*a[8];
-    const q0=l0-clampN(l0,-e[0],e[0]),q1=l1-clampN(l1,-e[1],e[1]),q2=l2-clampN(l2,-e[2],e[2]);
-    return Math.sqrt(q0*q0+q1*q1+q2*q2);
-}
-
-// 自分の体どうしの干渉判定（隣り合う関節は除外・少しの重なりは許容）
-const SELF_PAIRS=[
-    [1,2,0.012],[1,4,0.012],[1,3,0.004],[1,5,0.004],[1,6,0],[1,7,0],[1,8,0],[1,9,0],
-    [0,2,0.03],[0,4,0.03],[0,3,0.012],[0,5,0.012],[0,7,0.01],[0,9,0.01],
-    [2,4,0.004],[2,5,0.004],[3,4,0.004],[3,5,0.004],
-    [2,6,0.004],[2,7,0.004],[2,8,0.004],[2,9,0.004],[3,6,0.004],[3,7,0.004],[3,8,0.004],[3,9,0.004],
-    [4,6,0.004],[4,7,0.004],[4,8,0.004],[4,9,0.004],[5,6,0.004],[5,7,0.004],[5,8,0.004],[5,9,0.004],
-    [6,8,0.004],[6,9,0.004],[7,8,0.004],[7,9,0.004]
-];
-const NOARM_IDX=[0,1,6,7,8,9];
-function selfPen(P,useArms){
-    let s=0;
-    for(let k=0;k<SELF_PAIRS.length;k++){
-        const pr=SELF_PAIRS[k];
-        if(!useArms && (pr[0]>=2&&pr[0]<=5||pr[1]>=2&&pr[1]<=5)) continue;
-        const v=pairDepth(P[pr[0]],P[pr[1]])-pr[2];
-        if(v>0) s+=v;
-    }
-    return s;
-}
-function bodyVolWeights(d){
-    return [8*d.torsoW/2*d.torsoH/2*d.torsoD/2, 4/3*PI*d.headR*d.headR*d.headR,
-        d.armT*d.armT*d.armHalf,d.armT*d.armT*d.armHalf,d.armT*d.armT*d.armHalf,d.armT*d.armT*d.armHalf,
-        d.legT*d.legT*d.legHalf,d.legT*d.legT*d.legHalf,d.legT*d.legT*d.legHalf,d.legT*d.legT*d.legHalf];
-}
-
-// ================= 評価関数 =================
-// ctx: {dA,dB,box:{auto,W,D,H},wA:[],wB:[],opt:{...}}
-function evalPose(ctx,gA,aA,gB,aB,useArms){
-    const PA=buildBody(ctx.dA,gA,aA), PB=buildBody(ctx.dB,gB,aB);
-    return evalParts(ctx,PA,PB,gA,gB,useArms);
-}
-function boxViol(ctx,P,idxs,bb){
-    const box=ctx.box; let v=0;
-    for(let k=0;k<idxs.length;k++){
-        const p=P[idxs[k]]; const c=p.c;
-        const y0=c[1]-p.ey; if(y0<0) v+=-y0;
-        if(bb){
-            const x0=c[0]-p.ex,x1=c[0]+p.ex,z0=c[2]-p.ez,z1=c[2]+p.ez,y1=c[1]+p.ey;
-            if(x0<bb.x0)bb.x0=x0; if(x1>bb.x1)bb.x1=x1; if(z0<bb.z0)bb.z0=z0; if(z1>bb.z1)bb.z1=z1; if(y1>bb.y1)bb.y1=y1;
-        }
-        if(!box.auto){
-            const hx=box.W/2,hz=box.D/2;
-            if(c[0]+p.ex>hx) v+=c[0]+p.ex-hx; if(c[0]-p.ex<-hx) v+=-hx-(c[0]-p.ex);
-            if(c[2]+p.ez>hz) v+=c[2]+p.ez-hz; if(c[2]-p.ez<-hz) v+=-hz-(c[2]-p.ez);
-            if(c[1]+p.ey>box.H) v+=c[1]+p.ey-box.H;
-        }
-    }
-    return v;
-}
-const ALL_IDX=[0,1,2,3,4,5,6,7,8,9];
-function evalParts(ctx,PA,PB,gA,gB,useArms){
-    const idx=useArms?ALL_IDX:NOARM_IDX;
-    const bb={x0:1e9,x1:-1e9,z0:1e9,z1:-1e9,y1:-1e9};
-    let boxV=boxViol(ctx,PA,idx,bb)+boxViol(ctx,PB,idx,bb);
-    let pair=0,pairMax=0;
-    for(let i=0;i<idx.length;i++){
-        for(let j=0;j<idx.length;j++){
-            const v=pairDepth(PA[idx[i]],PB[idx[j]]);
-            if(v>0){pair+=v; if(v>pairMax)pairMax=v;}
-        }
-    }
-    const self=selfPen(PA,useArms)+selfPen(PB,useArms);
-    const viol=boxV+pair+self;
-    const W=ctx.W;
-    // ---- 品質項 ----
-    let Q=0;
-    // 重力（重心が低いほど安定）
-    let my=0,mt=0;
-    for(let k=0;k<idx.length;k++){ my+=ctx.wA[idx[k]]*PA[idx[k]].c[1]+ctx.wB[idx[k]]*PB[idx[k]].c[1]; mt+=ctx.wA[idx[k]]+ctx.wB[idx[k]]; }
-    Q+=W.grav*(my/mt);
-    // 胴体どうしが寄り添う
-    const gap=obbSep(PA[0],PB[0]);
-    if(gap>0.015) Q+=W.contact*(gap-0.015);
-    // 顔が近い
-    const hd=Math.hypot(PA[1].c[0]-PB[1].c[0],PA[1].c[1]-PB[1].c[1],PA[1].c[2]-PB[1].c[2])-(PA[1].r+PB[1].r);
-    if(hd>0.06) Q+=W.face*(hd-0.06);
-    // 首のひねり（お互いの顔が見える向きか）
-    Q+=W.gaze*(gazeExcess(PA,PB)+gazeExcess(PB,PA));
-    // 無理のない姿勢
-    Q+=W.comfort*(comfort(gA)+comfort(gB));
-    // 胴の傾き（座位を好む）
-    Q+=W.tilt*(tilt(PA)+tilt(PB));
-    if(ctx.box.auto){
-        const vol=(bb.x1-bb.x0)*(bb.z1-bb.z0)*bb.y1;
-        Q+=W.vol*vol;
-    }
-    // 選んだポーズの型から外れていないか（外れた分だけ大きく減点）
-    const fpen=ctx.fp?famPen(ctx.fp,gA,gB,PA,PB):0;
-    const J=W.viol*viol+Q+W.fam*fpen;
-    return {J,viol,boxV,pair,pairMax,self,Q,bb,fpen,pv:pair+self,Qf:Q+W.fam*fpen,W:W.viol};
-}
-
-// ================= ポーズ型の制約 =================
-// fp={fam,top}：top＝上に座る／前に座る側（0=A, 1=B）。もう一方が土台（B側）になる
-function exc(v,lo,hi){return v<lo?lo-v:(v>hi?v-hi:0);}
-function pFwd(g){const f=qRot(rootQ(g),[0,0,1]);const l=Math.hypot(f[0],f[2])||1;return [f[0]/l,f[2]/l];}
-function torsoTilt(P){return Math.acos(clampN(P[0].a[4],-1,1));}
-// 座っている人の「自然な姿勢」：骨盤・背骨を倒しすぎない／脚が内側で交差しない／上体が傾きすぎない
-function sitPen(g,P,lim){
-    let p=exc(Math.abs(g[4]),0,0.3)+exc(Math.abs(g[5]),0,0.2)+exc(g[6],-0.3,0.5)+exc(Math.abs(g[7]),0,0.2)+exc(Math.abs(g[8]),0,0.4);
-    p+=exc(g[10],-0.05,9)+exc(g[14],-0.05,9);
-    p+=exc(Math.abs(g[9]-g[13]),0,0.5)+exc(Math.abs(g[12]-g[16]),0,0.9); // 左右の脚をそろえる
-    p+=exc(torsoTilt(P),0,lim);
-    return p;
-}
-// 体操座り：ももを引き寄せ、ひざを深く曲げる
-function kneesUp(g){return exc(g[9],1.5,9)+exc(g[13],1.5,9)+exc(g[12],1.5,9)+exc(g[16],1.5,9);}
-function famPen(fp,gA,gB,PA,PB){
-    const t=fp.top;
-    const gT=t?gB:gA, gS=t?gA:gB, PT=t?PB:PA, PS=t?PA:PB;
-    const fT=pFwd(gT), fS=pFwd(gS);
-    const ang=Math.acos(clampN(fT[0]*fS[0]+fT[1]*fS[1],-1,1)); // 向きの差（0＝同じ向き、π＝向かい合い）
-    const rx=gT[0]-gS[0], rz=gT[2]-gS[2], ry=gT[1]-gS[1];
-    const fw=rx*fS[0]+rz*fS[1];                 // 土台の人の前方へのずれ
-    const lat=Math.abs(rx*fS[1]-rz*fS[0]);      // 左右のずれ
-    let p=0;
-    switch(fp.fam){
-    case 'between': // 土台の脚の間に、同じ向きで床に座る
-        p+=exc(ang,0,0.35)+exc(fw,0.10,0.40)+exc(lat,0,0.10)+exc(ry,-0.10,0.05)+exc(gS[10],0.4,9)+exc(gS[14],0.4,9)+sitPen(gT,PT,0.5)+sitPen(gS,PS,0.5);
-        break;
-    case 'laplap': // 土台の太ももの上に、同じ向きで座る
-        p+=exc(ang,0,0.35)+exc(fw,0.08,0.38)+exc(lat,0,0.10)+exc(ry,0.08,0.35)+sitPen(gT,PT,0.55)+sitPen(gS,PS,0.5);
-        break;
-    case 'betweenF': // 土台の脚の間に、向かい合って床に座る（土台は脚を開く）
-        p+=exc(Math.PI-ang,0,0.35)+exc(fw,0.25,0.65)+exc(lat,0,0.10)+exc(ry,-0.10,0.05)+exc(gS[10],0.3,9)+exc(gS[14],0.3,9)+exc(gS[1],0,0.12)+exc(gT[1],0,0.15)+sitPen(gT,PT,0.5)+sitPen(gS,PS,0.5);
-        break;
-    case 'laplapF': // 太ももの上で向かい合う
-        p+=exc(Math.PI-ang,0,0.35)+exc(fw,0.10,0.40)+exc(lat,0,0.10)+exc(ry,0.08,0.35)+exc(gS[1],0,0.12)+sitPen(gT,PT,0.6)+sitPen(gS,PS,0.5);
-        break;
-    case 'facingKnees': // どちらも床で体操座り（ひざを立てる）をして向かい合う
-        p+=exc(Math.PI-ang,0,0.35)+exc(fw,0.40,0.85)+exc(lat,0,0.20)+exc(Math.abs(ry),0,0.08)+exc(gS[1],0,0.15)+exc(gT[1],0,0.15)+kneesUp(gT)+kneesUp(gS)+sitPen(gT,PT,0.5)+sitPen(gS,PS,0.5);
-        break;
-    case 'facingWrap': { // 相手の胴を左右から脚で挟むように向かい合う
-        const ph=PS.hip, hw=PS[0].e[0];
-        p+=exc(Math.PI-ang,0,0.35)+exc(fw,0.0,0.20)+exc(lat,0,0.14)+exc(ry,0.06,0.35)+exc(gS[1],0,0.12)+exc(gT[10],0.45,9)+exc(gT[14],0.45,9)+sitPen(gT,PT,0.6)+sitPen(gS,PS,0.5);
-        for(const k of [6,8]){
-            const c=PT[k].c, dx=c[0]-ph[0], dz=c[2]-ph[2];
-            p+=exc(Math.abs(dx*fS[1]-dz*fS[0]),hw+0.04,9)+exc(dx*fS[0]+dz*fS[1],-9,0.1);
-        }
-        break; }
-    case 'cradle': { // 太ももの上に横向きに座り、上体を相手に預ける
-        const hT=PT[1].c, ph=PT.hip;
-        const toward=-((hT[0]-ph[0])*fS[0]+(hT[2]-ph[2])*fS[1]); // 頭が土台の胴の側へ寄っているか
-        p+=exc(Math.abs(ang-Math.PI/2),0,0.35)+exc(fw,0.06,0.36)+exc(lat,0,0.14)+exc(ry,0.08,0.35)
-          +exc(toward,0.04,9)+exc(torsoTilt(PT),0.15,1.0)+sitPen(gS,PS,0.5);
-        break; }
-    case 'side': // 並んで同じ向きに座る
-        p+=exc(ang,0,0.4)+exc(Math.abs(ry),0,0.07)+exc(Math.abs(fw),0,0.12)+exc(lat,0.10,0.50)+sitPen(gT,PT,0.45)+sitPen(gS,PS,0.45);
-        break;
-    case 'lying': { // 寝そべる：Tは横になる／土台は座って受け止めるか、同じく寝る
-        const uT=Math.abs(PT[0].a[4]), uS=Math.abs(PS[0].a[4]);
-        p+=2*exc(uT,0,0.35)+Math.max(0,Math.min(uS-0.35,0.8-uS))+exc(Math.hypot(rx,rz),0,0.6);
-        if(uS>=0.6) p+=sitPen(gS,PS,0.5);
-        break; }
-    }
-    return p;
-}
-function tilt(P){
-    const a=P[0].a; // 胴体のローカルY軸
-    const c=a[4]; // y成分（1＝直立）
-    return (1-Math.abs(c));
-}
-function gazeExcess(P,Q){
-    // P の頭が Q の頭を見るのに必要な首の回転量（胴体座標）
-    const inv=qInv(P.Rt);
-    const hp=P[1].c, tq=Q[1].c;
-    const v=qRot(inv,[tq[0]-hp[0],tq[1]-hp[1],tq[2]-hp[2]]);
-    const l=Math.hypot(v[0],v[1],v[2])||1;
-    const yaw=Math.atan2(v[0],v[2]); const pitch=Math.asin(clampN(v[1]/l,-1,1));
-    let e=0;
-    if(Math.abs(yaw)>1.2) e+=Math.abs(yaw)-1.2;
-    if(pitch<-0.9) e+=-0.9-pitch;
-    if(pitch>0.8) e+=pitch-0.8;
-    return e;
-}
-function comfort(g){
-    let c=0;
-    // 関節の可動域の端に近いほどつらい姿勢
-    const soft=(v,lo,hi,m)=>{ if(v>hi-m) c+=(v-(hi-m))/m; if(v<lo+m) c+=((lo+m)-v)/m; };
-    soft(g[6],G_LO[6],G_HI[6],0.3);
-    soft(g[7],G_LO[7],G_HI[7],0.15); soft(g[8],G_LO[8],G_HI[8],0.25);
-    for(let i=0;i<2;i++){const o=9+i*4;
-        soft(g[o],G_LO[o],G_HI[o],0.3); soft(g[o+1],G_LO[o+1],G_HI[o+1],0.2);
-        soft(g[o+2],G_LO[o+2],G_HI[o+2],0.3); soft(g[o+3],G_LO[o+3],G_HI[o+3],0.25);
-    }
-    // 左右の脚の差が大きすぎない
-    c+=0.15*Math.abs(g[9]-g[13]);
-    return c*0.3;
-}
-const DEF_W={viol:120,grav:0.5,contact:3,face:1.2,gaze:0.5,comfort:0.4,tilt:0.35,vol:2.2,fam:8};
-
-// ================= 初期姿勢（ポーズの型） =================
-function sitGene(d,o){
-    const g=new Float64Array(GN);
-    g[0]=o.x||0; g[1]=(o.y!==undefined)?o.y:d.legT/2+0.01; g[2]=o.z||0; g[3]=o.yaw||0; g[4]=o.pitch||0; g[5]=o.roll||0;
-    g[6]=o.lean||0; g[7]=o.side||0; g[8]=o.twist||0;
-    const L=o.legs||{};
-    const f=L.flex!==undefined?L.flex:1.45, ab=L.abd!==undefined?L.abd:0.15, ex=L.ext||0, kn=L.knee!==undefined?L.knee:0.2;
-    g[9]=f;g[10]=ab;g[11]=ex;g[12]=kn; g[13]=(L.flexR!==undefined?L.flexR:f);g[14]=ab;g[15]=ex;g[16]=(L.kneeR!==undefined?L.kneeR:kn);
-    return g;
-}
-const FAMILIES=['between','betweenF','laplap','laplapF','facingKnees','facingWrap','cradle','side','lying'];
-const SYM_FAMS={side:1,facingKnees:1}; // 役割（上／土台）の区別がない型
-function familySeeds(dA,dB,fam){
-    const out=[]; // [gA,gB]
-    const sB=dB.legT/2+0.01, sA=dA.legT/2+0.01;
-    if(fam==='between'){
-        out.push([sitGene(dA,{z:dB.torsoD/2+dA.torsoD/2+0.2,lean:-0.12,legs:{flex:1.45,abd:0.12,knee:0.2}}),
-                  sitGene(dB,{lean:0.05,legs:{flex:1.45,abd:0.5,knee:0.2}})]);
-        out.push([sitGene(dA,{z:0.3,lean:-0.12,legs:{flex:1.7,abd:0.1,knee:1.9}}),
-                  sitGene(dB,{lean:0.1,legs:{flex:1.6,abd:0.5,knee:1.5}})]);
-    } else if(fam==='laplap'){
-        out.push([sitGene(dA,{z:0.3,y:sB+dB.legT/2+dA.legT/2+0.02,lean:-0.1,legs:{flex:1.2,abd:0.1,knee:1.0}}),
-                  sitGene(dB,{lean:0.05,legs:{flex:1.45,abd:0.1,knee:0.15}})]);
-        out.push([sitGene(dA,{z:0.2,y:sB+dB.legT*0.7,lean:-0.2,legs:{flex:1.6,abd:0.1,knee:1.6}}),
-                  sitGene(dB,{lean:0.1,legs:{flex:1.3,abd:0.4,knee:0.9}})]);
-    } else if(fam==='betweenF'){
-        out.push([sitGene(dA,{z:0.5,yaw:PI,lean:0.1,legs:{flex:1.9,abd:0.12,knee:2.3}}),
-                  sitGene(dB,{lean:0.05,legs:{flex:1.45,abd:0.55,knee:0.3}})]);
-        out.push([sitGene(dA,{z:0.42,yaw:PI,lean:0.1,legs:{flex:1.4,abd:0.7,knee:1.5}}),
-                  sitGene(dB,{lean:0.05,legs:{flex:1.6,abd:0.6,knee:1.2}})]);
-    } else if(fam==='facingKnees'){
-        out.push([sitGene(dA,{z:0.62,yaw:PI,lean:0.1,legs:{flex:1.9,abd:0.12,knee:2.3}}),
-                  sitGene(dB,{lean:0.1,legs:{flex:1.9,abd:0.12,knee:2.3}})]);
-        out.push([sitGene(dA,{x:0.1,z:0.58,yaw:PI,lean:0.15,legs:{flex:1.9,abd:0.2,knee:2.3}}),
-                  sitGene(dB,{lean:0.15,legs:{flex:1.9,abd:0.2,knee:2.3}})]);
-    } else if(fam==='facingWrap'){
-        out.push([sitGene(dA,{z:0.12,y:sB+dB.legT/2+dA.legT/2+0.02,yaw:PI,lean:0.1,legs:{flex:1.3,abd:0.8,knee:1.0,ext:0.4}}),
-                  sitGene(dB,{lean:0.05,legs:{flex:1.45,abd:0.15,knee:0.15}})]);
-        out.push([sitGene(dA,{z:0.15,y:sB+dB.legT/2+dA.legT/2+0.02,yaw:PI,lean:0.05,legs:{flex:1.5,abd:0.9,knee:1.4}}),
-                  sitGene(dB,{lean:0.05,legs:{flex:1.3,abd:0.6,knee:1.8}})]);
-    } else if(fam==='laplapF'){
-        out.push([sitGene(dA,{z:0.22,y:sB+dB.legT/2+dA.legT/2+0.02,yaw:PI,lean:0.1,legs:{flex:1.5,abd:0.7,knee:1.0}}),
-                  sitGene(dB,{lean:0.1,legs:{flex:1.45,abd:0.15,knee:0.15}})]);
-        out.push([sitGene(dA,{z:0.25,y:sB+0.05,yaw:PI,lean:0.05,legs:{flex:1.3,abd:0.8,knee:1.4}}),
-                  sitGene(dB,{lean:0.05,legs:{flex:0.9,abd:0.8,knee:2.1,ext:0.3}})]);
-    } else if(fam==='cradle'){
-        out.push([sitGene(dA,{x:0.0,z:0.2,y:sB+dB.legT/2+dA.legT/2+0.02,yaw:PI/2,lean:-0.3,side:0.2,legs:{flex:1.3,abd:0.05,knee:1.2}}),
-                  sitGene(dB,{lean:0.25,legs:{flex:1.45,abd:0.1,knee:0.2}})]);
-        out.push([sitGene(dA,{x:0.0,z:0.2,y:sB+dB.legT*0.8,yaw:-PI/2,lean:-0.3,side:-0.2,legs:{flex:1.3,abd:0.05,knee:1.2}}),
-                  sitGene(dB,{lean:0.25,legs:{flex:1.45,abd:0.1,knee:0.2}})]);
-    } else if(fam==='side'){
-        out.push([sitGene(dA,{x:-0.2,lean:0.35,legs:{flex:1.7,abd:0.1,knee:1.9}}),
-                  sitGene(dB,{x:0.2,lean:0.3,legs:{flex:1.7,abd:0.1,knee:1.9}})]);
-        out.push([sitGene(dA,{x:-0.22,lean:0.2,legs:{flex:1.45,abd:0.1,knee:0.2}}),
-                  sitGene(dB,{x:0.22,lean:0.2,legs:{flex:1.45,abd:0.1,knee:0.2}})]);
-    } else if(fam==='lying'){
-        for(const sg of [1,-1]){
-            out.push([sitGene(dA,{x:0,z:0.25,y:sB+dB.legT/2+dA.torsoD/2+0.03,yaw:sg*PI/2,pitch:-1.45,legs:{flex:0.3,abd:0.05,knee:1.2}}),
-                      sitGene(dB,{lean:0.3,legs:{flex:1.45,abd:0.1,knee:0.2}})]);
-        }
-        out.push([sitGene(dA,{x:0,z:0.05,y:dA.torsoD/2+0.02,yaw:0,pitch:-1.5,legs:{flex:0.3,abd:0.05,knee:0.9}}),
-                  sitGene(dB,{x:0,z:0.0,y:dB.torsoD/2+0.2,yaw:0,pitch:-1.5,legs:{flex:0.3,abd:0.05,knee:0.9}})]);
-    }
-    return out;
-}
-function rotateSeed(g,th){
-    const o=Float64Array.from(g);
-    const c=Math.cos(th),s=Math.sin(th);
-    o[0]=g[0]*c+g[2]*s; o[2]=-g[0]*s+g[2]*c; o[3]=g[3]+th;
-    return o;
-}
-function recenterPair(gA,gB){
-    const cx=(gA[0]+gB[0])/2, cz=(gA[2]+gB[2])/2;
-    gA[0]-=cx;gB[0]-=cx;gA[2]-=cz;gB[2]-=cz;
-}
-
-// ================= 探索（焼きなまし） =================
-function clampGene(ctx,g){
-    for(let i=0;i<GN;i++){ if(i===3) continue; g[i]=clampN(g[i],G_LO[i],G_HI[i]); }
-    const b=ctx.box;
-    if(b.auto){ g[0]=clampN(g[0],-1.2,1.2); g[2]=clampN(g[2],-1.2,1.2); g[1]=clampN(g[1],0,1.6); }
-    else { g[0]=clampN(g[0],-b.W/2,b.W/2); g[2]=clampN(g[2],-b.D/2,b.D/2); g[1]=clampN(g[1],0,b.H); }
-}
-function* anneal(ctx,gA,gB,aA,aB,nEval,rnd,T0,T1,useArms,scale0,ramp){
-    let cur=evalPose(ctx,gA,aA,gB,aB,useArms);
-    let bestJ=cur.J,bestA=Float64Array.from(gA),bestB=Float64Array.from(gB),bestInfo=cur;
-    let cA=Float64Array.from(gA),cB=Float64Array.from(gB);
-    for(let it=0;it<nEval;it++){
-        const fr=it/nEval;
-        const T=T0*Math.pow(T1/T0,fr);
-        const sc=(scale0||1)*(1-0.85*fr);
-        // 序盤は干渉を軽く扱って配置を大きく動かし、後半で干渉を解消していく
-        const vw=ramp?cur.W*(0.15+0.85*Math.min(1,fr/0.55)):cur.W;
-        const nA=Float64Array.from(cA),nB=Float64Array.from(cB);
-        const r=rnd();
-        if(r<0.45){
-            const k=1+Math.floor(rnd()*4);
-            for(let m=0;m<k;m++){
-                const i=Math.floor(rnd()*GN*2); const t=i<GN?nA:nB; const j=i%GN;
-                if(j===1&&rnd()<0.5) continue;
-                t[j]+=gauss(rnd)*G_SIG[j]*sc;
-            }
-        } else if(r<0.62){
-            const t=rnd()<0.5?nA:nB; t[0]+=gauss(rnd)*0.05*sc; t[2]+=gauss(rnd)*0.05*sc; t[1]+=gauss(rnd)*0.03*sc;
-        } else if(r<0.70){
-            const dx=gauss(rnd)*0.05*sc,dz=gauss(rnd)*0.05*sc; nA[0]+=dx;nB[0]+=dx;nA[2]+=dz;nB[2]+=dz;
-        } else if(r<0.78){
-            const t=rnd()<0.5?nA:nB; t[3]+=gauss(rnd)*0.3*sc;
-        } else if(r<0.90){
-            const t=rnd()<0.5?nA:nB; const j=[0,1,3][Math.floor(rnd()*3)]; // 両脚そろえて動かす
-            const o=[9,10,11,12][j===3?3:j]; const dv=gauss(rnd)*G_SIG[o]*sc;
-            t[9+j]+=dv; t[13+j]+=dv;
-        } else {
-            const t=rnd()<0.5?nA:nB; t[6]+=gauss(rnd)*0.15*sc; t[4]+=gauss(rnd)*0.12*sc; t[1]+=gauss(rnd)*0.03*sc;
-        }
-        clampGene(ctx,nA);clampGene(ctx,nB);
-        const e=evalPose(ctx,nA,aA,nB,aB,useArms);
-        const dJ=(vw*e.viol+e.Qf)-(vw*cur.viol+cur.Qf);
-        if(dJ<=0||rnd()<Math.exp(-dJ/T)){
-            cur=e;cA=nA;cB=nB;
-            if(e.J<bestJ){bestJ=e.J;bestA=Float64Array.from(nA);bestB=Float64Array.from(nB);bestInfo=e;}
-        }
-        if((it&31)===31) yield 0;
-    }
-    return {gA:bestA,gB:bestB,info:bestInfo};
-}
-// 真下へ落として接地させる（めり込みが増えない範囲で最大限）
-function settleDown(ctx,gA,aA,gB,aB,who,useArms){
-    const base=evalPose(ctx,gA,aA,gB,aB,useArms);
-    const g=who===0?gA:gB;
-    const y0=g[1];
-    const ok=(dy)=>{ g[1]=Math.max(0,y0-dy); const e=evalPose(ctx,gA,aA,gB,aB,useArms); return e.viol<=base.viol+1e-4; };
-    let lo=0,hi=Math.min(y0,0.8);
-    if(ok(hi)){ g[1]=Math.max(0,y0-hi); return; }
-    for(let i=0;i<14;i++){ const mid=(lo+hi)/2; if(ok(mid)) lo=mid; else hi=mid; }
-    g[1]=Math.max(0,y0-lo);
-}
-
-// ================= 腕の探索 =================
-function armCost(ctx,who,P,Q,i,W){
-    // who の腕i（0左/1右）の評価：他人・自分・箱との干渉＋ハグ度
-    const a0=2+i*2,a1=3+i*2;
-    let pen=0;
-    for(let k=0;k<10;k++){ pen+=pairDepth(P[a0],Q[k]); pen+=pairDepth(P[a1],Q[k]); }
-    for(let k=0;k<SELF_PAIRS.length;k++){
-        const pr=SELF_PAIRS[k];
-        if(pr[0]===a0||pr[0]===a1||pr[1]===a0||pr[1]===a1){
-            const v=pairDepth(P[pr[0]],P[pr[1]])-pr[2]; if(v>0) pen+=v;
-        }
-    }
-    pen+=boxViol(ctx,P,[a0,a1],null);
-    const H=P.hands[i];
-    const Pt=Q[0], My=P[0];
-    const dP=pointObbDist(H,Pt);
-    let dS=1e9;
-    for(let k=6;k<10;k++){const v=pointObbDist(H,P[k]); if(v<dS) dS=v;}
-    const dT=pointObbDist(H,My);
-    let dQ=1e9;
-    for(let k=6;k<10;k++){const v=pointObbDist(H,Q[k]); if(v<dQ) dQ=v;} // 相手の脚（ひざ・ももに手を置く）
-    let att=Math.min(dP,dS+0.05,dT+0.08,dQ+0.04);
-    // 相手の向こう側へ回り込む（抱きつき）ボーナス
-    let bonus=0;
-    const dx=Pt.c[0]-My.c[0],dy=Pt.c[1]-My.c[1],dz=Pt.c[2]-My.c[2]; const dl=Math.hypot(dx,dy,dz)||1;
-    const behind=((H[0]-Pt.c[0])*dx+(H[1]-Pt.c[1])*dy+(H[2]-Pt.c[2])*dz)/dl;
-    if(behind>0.01&&dP<0.05) bonus=-0.25;
-    return W.viol*pen+5*att+bonus;
-}
-function armComfort(a,i){
-    const o=i*4; const f=a[o],ab=a[o+1],r=a[o+2],e=a[o+3];
-    let c=0;
-    if(f>1.4) c+=0.15*(f-1.4);
-    if(ab>1.5) c+=0.15*(ab-1.5);
-    if(f<-0.3) c+=0.3*(-0.3-f);
-    if(e>2.2) c+=0.5*(e-2.2);
-    c+=0.04*Math.abs(r);
-    return c;
-}
-function* solveArms(ctx,gA,gB,aA,aB,rnd,nRand,nHill){
-    const order=[[1,0],[1,1],[0,0],[0,1],[1,0],[1,1],[0,0],[0,1]];
-    for(let pass=0;pass<order.length;pass++){
-        const who=order[pass][0], i=order[pass][1];
-        const g=who===0?gA:gB, d=who===0?ctx.dA:ctx.dB, a=who===0?aA:aB;
-        const gq=who===0?gB:gA, dq=who===0?ctx.dB:ctx.dA, aq=who===0?aB:aA;
-        const Q=buildBody(dq,gq,aq);
-        const o=i*4;
-        const score=(arm)=>{
-            const P=buildBody(d,g,arm);
-            return armCost(ctx,who,P,Q,i,ctx.W)+armComfort(arm,i);
-        };
-        let best=Float64Array.from(a), bestC=score(best);
-        const consider=(arm)=>{const c=score(arm); if(c<bestC){bestC=c;best=arm;}};
-        if(pass<4){
-            consider(Float64Array.from(ARM_NEUTRAL));
-            for(let n=0;n<nRand;n++){
-                const arm=Float64Array.from(a);
-                for(let k=0;k<4;k++) arm[o+k]=A_LO[k]+rnd()*(A_HI[k]-A_LO[k]);
-                consider(arm);
-                if((n&31)===31) yield 0;
-            }
-        }
-        for(let n=0;n<nHill;n++){
-            const arm=Float64Array.from(best);
-            const sc=0.4*(1-n/nHill)+0.04;
-            const k=1+Math.floor(rnd()*3);
-            for(let m=0;m<k;m++){const q=Math.floor(rnd()*4); arm[o+q]=clampN(arm[o+q]+gauss(rnd)*0.35*sc,A_LO[q],A_HI[q]);}
-            consider(arm);
-            if((n&31)===31) yield 0;
-        }
-        for(let k=0;k<8;k++) a[k]=best[k];
-    }
-}
-
-// ================= 全体の流れ =================
-function makeCtx(o){
-    const dA=makeDims(o.heightA,o.genderA), dB=makeDims(o.heightB,o.genderB);
-    return {dA,dB,box:o.box,wA:bodyVolWeights(dA),wB:bodyVolWeights(dB),W:Object.assign({},DEF_W,o.weights||{})};
-}
-function famRoleSeeds(ctx,fam){
-    // どちらが上（前）に座るか両方の組み合わせを用意する
-    const out=[];
-    for(const s of familySeeds(ctx.dA,ctx.dB,fam)) out.push({gA:s[0],gB:s[1],top:0});
-    if(!SYM_FAMS[fam]){
-        for(const s of familySeeds(ctx.dB,ctx.dA,fam)) out.push({gA:s[1],gB:s[0],top:1});
-    }
-    return out;
-}
-function* solveGen(o){
-    const ctx=makeCtx(o);
-    const rnd=mulberry32((o.seed||1)*2654435761>>>0);
-    const aA=Float64Array.from(ARM_NEUTRAL), aB=Float64Array.from(ARM_NEUTRAL);
-    const fams=(o.family&&o.family!=='auto')?[o.family]:FAMILIES;
-    // 背の高い人が低い人の上に乗るのは不自然なので、少しだけ不利にする
-    const roleBias=(c)=>{
-        if(SYM_FAMS[c.fam]) return 0;
-        const hT=c.top?ctx.dB.h:ctx.dA.h, hS=c.top?ctx.dA.h:ctx.dB.h;
-        return 20*Math.max(0,hT/hS-0.98)+(c.top?0.02:0);
-    };
-    const avoidPen=(c)=>((o.avoidFam&&c.fam===o.avoidFam)?0.8:0)+roleBias(c);
-    // 1) 型×役割×向きの初期姿勢を全部採点
-    let cands=[];
-    for(const fam of fams){
-        const seeds=famRoleSeeds(ctx,fam);
-        for(let si=0;si<seeds.length;si++){
-            // 型の見本そのものと、関節・位置を少しずつ揺らしたもの（良い出発点を拾うため）
-            for(let jt=0;jt<(o.nJit||8);jt++){
-                let bA=seeds[si].gA, bB=seeds[si].gB;
-                if(jt>0){
-                    bA=Float64Array.from(bA); bB=Float64Array.from(bB);
-                    for(const t of [bA,bB]){
-                        for(let i=4;i<GN;i++) t[i]+=gauss(rnd)*G_SIG[i]*0.8;
-                        t[0]+=gauss(rnd)*0.04; t[2]+=gauss(rnd)*0.04;
-                        t[13]=t[9]; t[14]=t[10]; t[15]=t[11]; t[16]=t[12]; // 左右そろえた状態から始める
-                    }
-                }
-                for(let k=0;k<4;k++){
-                    const th=k*PI/2;
-                    const gA=rotateSeed(bA,th), gB=rotateSeed(bB,th);
-                    recenterPair(gA,gB);
-                    clampGene(ctx,gA);clampGene(ctx,gB);
-                    ctx.fp={fam:fam,top:seeds[si].top};
-                    const e=evalPose(ctx,gA,aA,gB,aB,false);
-                    cands.push({fam,top:seeds[si].top,gA,gB,J:e.J});
-                }
-            }
-        }
-        yield 0;
-    }
-    cands.sort((p,q)=>(p.J+avoidPen(p))-(q.J+avoidPen(q)));
-    // 型×役割ごとに最良の出発点を1つずつ（どの役割でも探索できるように）→足りなければ全体の上位で補う
-    const picked=[]; const seen={};
-    for(const c of cands){ const key=c.fam+c.top; if(!seen[key]){seen[key]=1;picked.push(c);} }
-    if(!o.scanOnly) for(const c of cands){ if(picked.length>=(o.nStart||6)) break; if(picked.indexOf(c)<0) picked.push(c); }
-    picked.sort((p,q)=>(p.J+avoidPen(p))-(q.J+avoidPen(q)));
-    const starts=picked;
-    // 2) それぞれを焼きなまし
-    const results=[];
-    const nEval=o.evals||1400;
-    for(const s of starts){
-        ctx.fp={fam:s.fam,top:s.top};
-        let r=yield* anneal(ctx,s.gA,s.gB,aA,aB,nEval,rnd,0.5,0.02,false,1,true);
-        if(r.info.fpen>0.03){ // 型を守れていなければ、もう一度その姿勢から探し直す
-            const r2=yield* anneal(ctx,r.gA,r.gB,aA,aB,nEval,rnd,0.35,0.02,false,0.8,true);
-            if(r2.info.J<r.info.J) r=r2;
-        }
-        results.push({fam:s.fam,top:s.top,gA:r.gA,gB:r.gB,J:r.info.J,viol:r.info.viol,pv:r.info.pv,fpen:r.info.fpen});
-    }
-    if(o.scanOnly){
-        // 各ポーズが「干渉なし・型を守れる」姿勢を作れるかだけを調べる（成立しなかった型は、もう一度じっくり探す）
-        const scan={};
-        for(const f of fams) scan[f]={ok:false,pv:9,fpen:9};
-        const isOk=(pv,fp)=>pv<=0.008&&fp<=0.15;
-        const note=(r)=>{
-            const ok=isOk(r.pv,r.fpen), cur=scan[r.fam];
-            if(ok||(!cur.ok&&(r.pv+r.fpen)<(cur.pv+cur.fpen))) scan[r.fam]={ok:cur.ok||ok,pv:r.pv,fpen:r.fpen};
-        };
-        for(const r of results) note(r);
-        for(const r of results){
-            for(let retry=0;retry<4&&!scan[r.fam].ok;retry++){ // 成立しなかった型は、探し直しを最大4回
-                ctx.fp={fam:r.fam,top:r.top};
-                const r2=yield* anneal(ctx,r.gA,r.gB,aA,aB,nEval*2,rnd,0.35,0.02,false,0.8,true);
-                note({fam:r.fam,pv:r2.info.pv,fpen:r2.info.fpen});
-            }
-        }
-        return {scan};
-    }
-    results.sort((p,q)=>(p.J+avoidPen(p))-(q.J+avoidPen(q)));
-    // 3) 上位を、接地→腕→仕上げ
-    let final=null;
-    const nTop=Math.min(o.nTop||3,results.length);
-    for(let t=0;t<nTop;t++){
-        const r=results[t];
-        ctx.fp={fam:r.fam,top:r.top};
-        const gA=Float64Array.from(r.gA),gB=Float64Array.from(r.gB);
-        const a1=Float64Array.from(ARM_NEUTRAL),b1=Float64Array.from(ARM_NEUTRAL);
-        settleDown(ctx,gA,a1,gB,b1,0,false); settleDown(ctx,gA,a1,gB,b1,1,false);
-        yield* solveArms(ctx,gA,gB,a1,b1,rnd,o.armRand||1400,o.armHill||300);
-        // 仕上げ：腕込みで微調整
-        const rr=yield* anneal(ctx,gA,gB,a1,b1,o.polish||500,rnd,0.08,0.01,true,0.35);
-        settleDown(ctx,rr.gA,a1,rr.gB,b1,0,true); settleDown(ctx,rr.gA,a1,rr.gB,b1,1,true);
-        const e=evalPose(ctx,rr.gA,a1,rr.gB,b1,true);
-        const cand={fam:r.fam,top:r.top,gA:rr.gA,gB:rr.gB,aA:a1,aB:b1,J:e.J,viol:e.viol,info:e};
-        if(!final||cand.J+avoidPen(cand)<final.J+avoidPen(final)) final=cand;
-        yield 0;
-    }
-    // 4) 箱の大きさ（自動なら、ぴったり＋余白）
-    const e=final.info;
-    let box;
-    if(ctx.box.auto){
-        const pad=0.025;
-        const cx=(e.bb.x0+e.bb.x1)/2, cz=(e.bb.z0+e.bb.z1)/2;
-        final.gA[0]-=cx;final.gB[0]-=cx;final.gA[2]-=cz;final.gB[2]-=cz;
-        box={W:(e.bb.x1-e.bb.x0)+pad*2,D:(e.bb.z1-e.bb.z0)+pad*2,H:e.bb.y1+pad};
-    } else box={W:ctx.box.W,D:ctx.box.D,H:ctx.box.H};
-    final.box=box;
-    return final;
-}
-
-
-// ===== ポーズ用ヘルパー（three.js側：ソルバーが出した角度を人形に反映する） =====
-// 腕・脚の棒を2分割して関節(肘・膝)を作る
-function addJoint(anchor) {
-    const mesh = anchor.children[0];
-    const half = mesh.geometry.parameters.height / 2;
-    mesh.scale.y = 0.5;
-    mesh.position.y = -half / 2;
-    const joint = new THREE.Group();
-    joint.position.y = -half;
-    const lower = new THREE.Mesh(mesh.geometry, mesh.material);
-    lower.scale.y = 0.5;
-    lower.position.y = -half / 2;
-    joint.add(lower);
-    anchor.add(joint);
-    anchor.joint = joint;
-    anchor.half = half;
-}
-
-// 真下向きの棒を dir の向きへ回す（回転順 XYZ）
-function aim(node, dir) {
-    const d = dir.clone().normalize();
-    node.rotation.z = Math.asin(Math.max(-1, Math.min(1, d.x)));
-    node.rotation.x = Math.atan2(-d.z, -d.y);
-}
-
-// dirUpper/dirLower は anchor の親座標系での向き
-function aimLimb(anchor, dirUpper, dirLower) {
-    aim(anchor, dirUpper);
-    const inv = anchor.quaternion.clone().invert();
-    aim(anchor.joint, dirLower.clone().applyQuaternion(inv));
-}
-
-// 腰を軸に上半身(頭・首・胴・腕)を自由に曲げられるようにする（名前タグは含めない）
-function setupPivot(p) {
-    const pivot = new THREE.Group();
-    pivot.position.y = p.userData.legH;
-    const upper = p.children.filter(c => !p.legs.includes(c) && c !== p.nameTag);
-    upper.forEach(c => { p.remove(c); c.position.y -= p.userData.legH; pivot.add(c); });
-    p.add(pivot);
-    p.pivot = pivot;
-    p.headParts.rotation.order = 'YXZ';
-}
-
-// ソルバーの結果（体の角度）を人形に反映する
-function applyPose(p, g, arm) {
-    const Rr = rootQ(g), Rs = spineQ(g);
-    p.quaternion.set(Rr[0], Rr[1], Rr[2], Rr[3]);
-    const off = qRot(Rr, [0, p.userData.legH, 0]);
-    p.position.set(g[0] - off[0], g[1] - off[1], g[2] - off[2]);
-    p.pivot.quaternion.set(Rs[0], Rs[1], Rs[2], Rs[3]);
-    for (let i = 0; i < 2; i++) {
-        const dl = limbDirsLeg(g, i);
-        aimLimb(p.legs[i], new THREE.Vector3(dl.dU[0], dl.dU[1], dl.dU[2]), new THREE.Vector3(dl.dL[0], dl.dL[1], dl.dL[2]));
-        const da = limbDirsArm(arm, i);
-        aimLimb(p.arms[i], new THREE.Vector3(da.dU[0], da.dU[1], da.dU[2]), new THREE.Vector3(da.dL[0], da.dL[1], da.dL[2]));
-    }
-}
-
-// 首の向き：相手の顔を見る。ただし首が回る範囲（左右約70°・下約50°・上約45°）まで
-function aimHead(p, targetWorld) {
-    const head = p.headParts;
-    p.pivot.updateWorldMatrix(true, false);
-    const v = p.pivot.worldToLocal(targetWorld.clone()).sub(head.position);
-    const l = v.length() || 1;
-    const yaw = Math.max(-1.2, Math.min(1.2, Math.atan2(v.x, v.z)));
-    const pitch = Math.max(-0.9, Math.min(0.8, Math.asin(Math.max(-1, Math.min(1, v.y / l)))));
-    head.rotation.set(-pitch, yaw, 0, 'YXZ');
-}
-
-// 透明な箱を作る（一人称視点のときは、壁・床・フタを不透明にして外が透けないようにする）
-function buildBox(b, lid) {
-    while (boxGroup.children.length) {
-        const c = boxGroup.children[0];
-        boxGroup.remove(c);
-        if (c.geometry) c.geometry.dispose();
-        if (c.material) c.material.dispose();
-    }
-    const opaque = currentView !== '3rd';
-    const W = b.W, D = b.D, H = b.H;
-    const face = (w, h, op, solidColor) => new THREE.Mesh(
-        new THREE.PlaneGeometry(w, h),
-        opaque
-            ? new THREE.MeshBasicMaterial({ color: solidColor, side: THREE.DoubleSide })
-            : new THREE.MeshBasicMaterial({ color: 0x8fc1ee, transparent: true, opacity: op, side: THREE.DoubleSide, depthWrite: false })
-    );
-    const floor = face(W, D, 0.2, 0xa9cdee); floor.rotation.x = -Math.PI / 2; floor.position.y = 0.002; boxGroup.add(floor);
-    const wallF = face(W, H, 0.1, 0xd3e6f8); wallF.position.set(0, H / 2, D / 2); boxGroup.add(wallF);
-    const wallB = face(W, H, 0.1, 0xd3e6f8); wallB.position.set(0, H / 2, -D / 2); boxGroup.add(wallB);
-    const wallL = face(D, H, 0.1, 0xc2daf3); wallL.rotation.y = Math.PI / 2; wallL.position.set(-W / 2, H / 2, 0); boxGroup.add(wallL);
-    const wallR = face(D, H, 0.1, 0xc2daf3); wallR.rotation.y = Math.PI / 2; wallR.position.set(W / 2, H / 2, 0); boxGroup.add(wallR);
-    if (lid) { const top = face(W, D, 0.1, 0xe2effb); top.rotation.x = -Math.PI / 2; top.position.y = H; boxGroup.add(top); }
-    const edges = new THREE.LineSegments(
-        new THREE.EdgesGeometry(new THREE.BoxGeometry(W, H, D)),
-        new THREE.LineBasicMaterial({ color: 0x4a90d9 })
-    );
-    edges.position.y = H / 2;
-    boxGroup.add(edges);
-}
-
-// 人形の準備（上半身を曲げられる軸と、肘・膝の関節を作る）
-function preparePerson(p) {
-    setupPivot(p);
-    p.arms.forEach(arm => addJoint(arm));
-    p.legs.forEach(leg => addJoint(leg));
-}
-
-function readBoxSettings() {
-    const auto = document.getElementById('boxModeAuto').checked;
-    const num = (id, def) => Math.max(30, parseFloat(document.getElementById(id).value) || def) * 0.01;
-    return {
-        auto: auto,
-        W: num('boxW', 90), D: num('boxD', 90), H: num('boxH', 100),
-        lid: document.getElementById('lidOn').checked,
-        family: diceAuto ? 'auto' : document.getElementById('poseFamily').value
-    };
-}
-
-// 解を人形と箱に反映する
-function applyResult(res) {
-    applyPose(personA, res.gA, res.aA);
-    applyPose(personB, res.gB, res.aB);
-    currentBox = res.box;
-}
-
-// 解が出るまでの仮ポーズ
-function applyProvisional(hA, gA, hB, gB, bs) {
-    if (lastResult) { applyResult(lastResult); return; }
-    const dA = makeDims(hA, gA), dB = makeDims(hB, gB);
-    const seed = familySeeds(dA, dB, 'between')[0];
-    applyPose(personA, seed[0], Float64Array.from(ARM_NEUTRAL));
-    applyPose(personB, seed[1], Float64Array.from(ARM_NEUTRAL));
-    currentBox = bs.auto ? { W: 0.9, D: 0.9, H: 1.1 } : { W: bs.W, D: bs.D, H: bs.H };
-}
-
-function startSolve(key, o) {
-    const token = ++solveToken;
-    pendingKey = key;
-    solving = true;
-    solverRun = null;
-    clearTimeout(solverTimer);
-    solverTimer = setTimeout(() => {
-        if (token !== solveToken) return;
-        solverRun = { gen: solveGen(o), key: key, token: token };
-    }, 220);
-}
-
-// 各ポーズがこの身長・箱で成り立つかを、メインの計算が終わってから裏で調べる
-function stepScan() {
-    if (!scanRun && scanParams && !solving) {
-        scanRun = { gen: solveGen(Object.assign({}, scanParams, { scanOnly: true, family: 'auto', evals: 900, seed: 1 })), key: scanParams.key };
-    }
-    if (!scanRun) return;
-    const t0 = performance.now();
-    try {
-        while (performance.now() - t0 < 6) {
-            const st = scanRun.gen.next();
-            if (st.done) {
-                const run = scanRun;
-                scanRun = null;
-                if (scanParams && run.key === scanParams.key) {
-                    scanDoneKey = run.key;
-                    scanParams = null;
-                    applyFamilyAvailability(st.value.scan);
-                }
-                break;
-            }
-        }
-    } catch (err) {
-        console.error(err);
-        scanRun = null; scanParams = null;
-    }
-}
-
-// 成り立たないポーズは選択肢から外す（今選んでいるものが外れたら「おまかせ」に戻す）
-function applyFamilyAvailability(scan) {
-    const sel = document.getElementById('poseFamily');
-    let lost = false;
-    for (const opt of sel.options) {
-        if (opt.value === 'auto') continue;
-        const shown = diceAuto && lastResult && lastResult.fam === opt.value;   // 🎲で出たポーズは残す
-        const ok = shown || !scan[opt.value] || scan[opt.value].ok;
-        opt.disabled = !ok;
-        opt.hidden = !ok;
-        opt.textContent = FAMILY_NAMES[opt.value] + (ok ? '' : '（この身長では不可）');
-        if (!ok && sel.value === opt.value) lost = true;
-    }
-    if (lost) { diceAuto = false; sel.value = 'auto'; updateScene(); }
-}
-
-function stepSolver() {
-    if (!solverRun) { stepScan(); return; }
-    const t0 = performance.now();
-    try {
-        while (performance.now() - t0 < 10) {
-            const s = solverRun.gen.next();
-            if (s.done) {
-                const run = solverRun;
-                solverRun = null;
-                if (run.token === solveToken) {
-                    lastResult = s.value;
-                    lastKey = run.key;
-                    pendingKey = '';
-                    solving = false;
-                    applyResult(lastResult);
-                    buildBox(currentBox, readBoxSettings().lid);
-                    syncPoseSelect();
-                    renderInfo();
-                }
-                break;
-            }
-        }
-    } catch (err) {
-        console.error(err);
-        solverRun = null;
-        solving = false;
-        renderInfo();
-    }
-}
-
-function reroll() {
-    variantSeed++;
-    diceAuto = true;        // 選んでいるポーズに関係なく、別のポーズを全体から探す
-    rerollPending = true;   // 今のポーズとは違う型を選びやすくするのは🎲のときだけ
-    updateScene();
-}
-
-// ポーズ欄を手で選んだとき：その型に固定して探し直す
-function onPoseSelect() {
-    diceAuto = false;
-    updateScene();
-}
-
-// 🎲で見つかったポーズを、ポーズ欄に反映する
-function syncPoseSelect() {
-    if (!diceAuto || !lastResult) return;
-    const sel = document.getElementById('poseFamily');
-    for (const opt of sel.options) {
-        if (opt.value === lastResult.fam) {
-            opt.hidden = false; opt.disabled = false;
-            opt.textContent = FAMILY_NAMES[opt.value];
-            sel.value = opt.value;
-            break;
-        }
-    }
-}
-
-function renderInfo() {
-    const hA = parseFloat(document.getElementById('heightA').value) || 158;
-    const hB = parseFloat(document.getElementById('heightB').value) || 171.5;
-    let pose = '', size = '';
-    if (solving) {
-        pose = '🔄 探索中…';
-    } else if (lastResult) {
-        pose = FAMILY_NAMES[lastResult.fam] || '';
-    }
-    if (lastResult) {
-        size = `${(currentBox.W * 100).toFixed(0)} × ${(currentBox.D * 100).toFixed(0)} × ${(currentBox.H * 100).toFixed(0)}`;
-    }
-    document.getElementById('info').innerHTML = `
-        <div class="info-row">
-            <span class="info-label">📏 身長差</span>
-            <span class="info-value">${Math.abs(hA-hB).toFixed(1)}<span class="unit">cm</span></span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">📦 箱の内寸</span>
-            <span class="info-value" style="font-size:15px;">${size || '-'}<span class="unit">cm</span></span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">🧍 ポーズ</span>
-            <span class="info-value" style="font-size:13px;">${pose || '-'}</span>
-        </div>
-    `;
-}
-
-function updateScene() {
-    const hA = parseFloat(document.getElementById('heightA').value)||158;
-    const hB = parseFloat(document.getElementById('heightB').value)||171.5;
-    const gA = document.getElementById('genderA').value;
-    const gB = document.getElementById('genderB').value;
-    const bs = readBoxSettings();
-    document.getElementById('boxManual').style.display = bs.auto ? 'none' : 'flex';
-
-    [personA, personB].forEach(p => { if (p) { walkGroup.remove(p); walkGroup.remove(p.nameTag); } });
+    <a href="https://qwertyaz111.github.io/lap-pillow-simulator/" class="card">
+        <div class="icon">🦵</div>
+        <div class="title">膝枕シミュレーター</div>
+    </a>
     
-    personA = createMannequin(document.getElementById('colorA').value, hA, gA, document.getElementById('nameA').value, 'A', {});
-    personB = createMannequin(document.getElementById('colorB').value, hB, gB, document.getElementById('nameB').value, 'B', {});
+    <a href="https://qwertyaz111.github.io/sharing-a-scarf-simulator/" class="card">
+        <div class="icon">🧣</div>
+        <div class="title">マフラーシミュレーター</div>
+    </a>
     
-    // 名前タグは人形から切り離して、頭の真上に表示する
-    personA.remove(personA.nameTag); personB.remove(personB.nameTag);
-    preparePerson(personA);
-    preparePerson(personB);
-
-    walkGroup.add(personA, personB, personA.nameTag, personB.nameTag);
-
-    // 身長・性別・箱の条件が同じなら前回の解を使い、変わったときだけ最適化し直す
-    const key = [hA, gA, hB, gB, bs.auto, bs.auto ? 0 : bs.W, bs.auto ? 0 : bs.D, bs.auto ? 0 : bs.H, bs.family, variantSeed].join('|');
-    if (lastResult && key === lastKey) {
-        applyResult(lastResult);
-        syncPoseSelect();
-    } else if (key === pendingKey) {
-        applyProvisional(hA, gA, hB, gB, bs);
-    } else {
-        applyProvisional(hA, gA, hB, gB, bs);
-        startSolve(key, {
-            heightA: hA, genderA: gA, heightB: hB, genderB: gB,
-            box: { auto: bs.auto, W: bs.W, D: bs.D, H: bs.H },
-            family: bs.family, seed: variantSeed, evals: bs.family === 'auto' ? 1500 : 2200,
-            avoidFam: (rerollPending && lastResult) ? lastResult.fam : null
-        });
-    }
-    rerollPending = false;
-    buildBox(currentBox, bs.lid);
-
-    // 身長・性別・箱が変わったら、成り立つポーズを調べ直す
-    const scanKey = [hA, gA, hB, gB, bs.auto, bs.auto ? 0 : bs.W, bs.auto ? 0 : bs.D, bs.auto ? 0 : bs.H].join('|');
-    if (scanKey !== scanDoneKey && !(scanParams && scanParams.key === scanKey)) {
-        scanRun = null;
-        scanParams = {
-            key: scanKey,
-            heightA: hA, genderA: gA, heightB: hB, genderB: gB,
-            box: { auto: bs.auto, W: bs.W, D: bs.D, H: bs.H }
-        };
-    }
-
-    const nA = document.getElementById('nameA').value||'A';
-    const nB = document.getElementById('nameB').value||'B';
-
-    if(currentView !== '3rd') {
-        const myName = (currentView === 'A') ? nA : nB;
-        document.getElementById('view-label').innerText = `${myName} の視点`;
-        if(currentView === 'A') { personA.headParts.visible = false; personA.nameTag.visible = false; }
-        if(currentView === 'B') { personB.headParts.visible = false; personB.nameTag.visible = false; }
-    }
-
-    renderInfo();
-}
-
-function animate() {
-    requestAnimationFrame(animate);
-
-    stepSolver();
-    walkGroup.updateMatrixWorld(true);
-
-    // お互いの顔を見つめる向き（首が回る範囲まで）
-    const eyeAWorld = personA.headParts.getWorldPosition(new THREE.Vector3());
-    const eyeBWorld = personB.headParts.getWorldPosition(new THREE.Vector3());
-    aimHead(personB, eyeAWorld);
-    aimHead(personA, eyeBWorld);
-
-    // 名前タグは頭の真上に
-    [[personA, eyeAWorld], [personB, eyeBWorld]].forEach(([p, e]) => {
-        p.nameTag.position.set(e.x, e.y + p.userData.height * 0.065 + 0.3, e.z);
-    });
-
-    const centerPos = new THREE.Vector3(0, currentBox.H * 0.5, 0);
-
-    if (currentView === '3rd') {
-        // 注視点のまわりを球面に沿って回る（真上・真下まで行ける。向きは回転角で直接指定するので、ちょうど真上/真下でも破綻しない）
-        camera.up.set(0, 1, 0);
-        const horiz = Math.cos(rotation.x) * camDist;
-        camera.position.set(
-            centerPos.x + Math.sin(rotation.y) * horiz,
-            centerPos.y + Math.sin(rotation.x) * camDist,
-            centerPos.z + Math.cos(rotation.y) * horiz
-        );
-        camera.rotation.set(-rotation.x, rotation.y, 0);
-    } else {
-        const self = (currentView === 'A' ? personA : personB);
-        camera.up.set(0, 1, 0);
-        const other = (currentView === 'A' ? personB : personA);
-        self.headParts.getWorldPosition(camera.position);
-        // 箱詰めでも、おたがいの顔を見つめる向きが正面
-        camera.lookAt(other.headParts.getWorldPosition(new THREE.Vector3()));
-
-        camera.rotateY(rotation.y);
-        camera.rotateX(rotation.x);
-        camera.rotation.z = 0; 
-    }
-    renderer.render(scene, camera);
-}
-
-function setupControls() {
-    const c = document.getElementById('canvas-container');
-    const move = (dx, dy) => {
-        rotation.y -= dx * 0.005; rotation.x -= dy * 0.005;
-        // 三人称は真上(+90°)〜真下(-90°)まで
-        if (currentView === '3rd') rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotation.x));
-    };
-    c.addEventListener('mousedown', () => isDragging = true);
-    window.addEventListener('mouseup', () => isDragging = false);
-    window.addEventListener('mousemove', e => { if(isDragging) move(e.movementX, e.movementY); });
-
-    c.addEventListener('wheel', e => {
-        if (currentView === '3rd') {
-            camDist += e.deltaY * 0.002;
-            camDist = Math.max(0.5, Math.min(10, camDist));
-        }
-    }, { passive: true });
-
-    c.addEventListener('touchstart', e => { 
-        if (e.touches.length === 1) {
-            isDragging = true; 
-            previousTouch = e.touches[0]; 
-            initialPinchDist = null;
-        } else if (e.touches.length === 2 && currentView === '3rd') {
-            isDragging = false;
-            initialPinchDist = Math.hypot(
-                e.touches[0].clientX - e.touches[1].clientX,
-                e.touches[0].clientY - e.touches[1].clientY
-            );
-        }
-    }, { passive: false });
-
-    window.addEventListener('touchend', () => { 
-        isDragging = false; 
-        initialPinchDist = null;
-    });
-
-    window.addEventListener('touchmove', e => {
-        if (e.touches.length === 1 && isDragging && previousTouch) {
-            if (e.cancelable) e.preventDefault();
-            const touch = e.touches[0];
-            move(touch.clientX - previousTouch.clientX, touch.clientY - previousTouch.clientY);
-            previousTouch = touch;
-        } else if (e.touches.length === 2 && initialPinchDist !== null && currentView === '3rd') {
-            if (e.cancelable) e.preventDefault();
-            const currentDist = Math.hypot(
-                e.touches[0].clientX - e.touches[1].clientX,
-                e.touches[0].clientY - e.touches[1].clientY
-            );
-            const diff = currentDist - initialPinchDist;
-            camDist -= diff * 0.005;
-            camDist = Math.max(0.5, Math.min(10, camDist));
-            initialPinchDist = currentDist;
-        }
-    }, { passive: false });
-}
-
-function switchView() {
-    const order = ['3rd', 'A', 'B'];
-    currentView = order[(order.indexOf(currentView) + 1) % 3];
-    const nA = document.getElementById('nameA').value||'A';
-    const nB = document.getElementById('nameB').value||'B';
+    <a href="https://qwertyaz111.github.io/piggyback-simulator/" class="card">
+        <div class="icon">🎒</div>
+        <div class="title">おんぶシミュレーター</div>
+    </a>
     
-    if (currentView === '3rd') {
-        document.getElementById('view-label').innerText = '三人称視点';
-    } else {
-        const myName = (currentView === 'A') ? nA : nB;
-        document.getElementById('view-label').innerText = `${myName} の視点`;
-    }
+    <a href="https://qwertyaz111.github.io/put-to-bed-simulator/" class="card">
+        <div class="icon">👶</div>
+        <div class="title">寝かしつけシミュレーター</div>
+    </a>    
 
-    document.getElementById('crosshair').style.display = currentView === '3rd' ? 'none' : 'block';
-    buildBox(currentBox, readBoxSettings().lid);   // 一人称では壁を不透明に／三人称では透明に戻す
-    personA.headParts.visible = true; personA.nameTag.visible = true;
-    personB.headParts.visible = true; personB.nameTag.visible = true;
-    if (currentView === 'A') { personA.headParts.visible = false; personA.nameTag.visible = false; }
-    else if (currentView === 'B') { personB.headParts.visible = false; personB.nameTag.visible = false; }
-    if (currentView === '3rd') { rotation.x = DEFAULT_ROT_3RD.x; rotation.y = DEFAULT_ROT_3RD.y * carrySide; }
-    else { rotation.x = 0; rotation.y = 0; }
-}
+    <a href="https://qwertyaz111.github.io/bookshelf-simulator/" class="card">
+        <div class="icon">📚</div>
+        <div class="title">本棚シミュレーター</div>
+    </a>
 
-function shareToX() {
-    const nA = document.getElementById('nameA').value || 'A';
-    const nB = document.getElementById('nameB').value || 'B';
-    const hA = parseFloat(document.getElementById('heightA').value) || 158.0;
-    const hB = parseFloat(document.getElementById('heightB').value) || 171.5;
-    const text = `${nB}(${hB.toFixed(1)}cm)と${nA}(${hA.toFixed(1)}cm)を箱詰め！\n#箱詰めシミュレーター\n`;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`, '_blank');
-}
+    <a href="https://qwertyaz111.github.io/princess-carry-simulator/" class="card">
+        <div class="icon">👸</div>
+        <div class="title">お姫様抱っこシミュレーター</div>
+    </a>
 
-init();
-</script>
+    <a href="https://qwertyaz111.github.io/leg-hold-simulator/" class="card">
+        <div class="icon">🤲</div>
+        <div class="title">膝抱っこシミュレーター</div>
+    </a>
+</div>
+
 </body>
 </html>
