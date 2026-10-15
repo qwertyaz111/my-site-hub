@@ -100,8 +100,16 @@
             line-height: 1.25;
         }
 
+        .link-row {
+            margin-top: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
         .sns-link {
-            margin-top: 4px;
             display: inline-block;
             color: var(--text-color);
             text-decoration: none;
@@ -111,6 +119,25 @@
         }
         .sns-link:hover {
             opacity: 0.7;
+        }
+
+        /* --- 独立させた❓風の隠しボタン --- */
+        .extra-link-btn {
+            display: inline-block;
+            background: rgba(255, 204, 51, 0.15);
+            border: 1px dashed rgba(140, 123, 106, 0.4);
+            color: var(--sub-text-color);
+            text-decoration: none;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .extra-link-btn:hover {
+            background: rgba(255, 204, 51, 0.3);
+            color: var(--text-color);
+            border-color: var(--primary-color);
         }
 
         /* --- 3列固定カードコンテナ --- */
@@ -146,13 +173,6 @@
             transform: translateY(-3px) scale(1.02);
             box-shadow: 0 6px 14px var(--accent-glow);
             border-color: var(--primary-color);
-        }
-
-        .card.coming-soon {
-            opacity: 0.7;
-            cursor: default;
-            border: 1.5px dashed #dcd6a9;
-            background: rgba(255, 255, 255, 0.5);
         }
 
         .icon {
@@ -195,7 +215,10 @@
         ご意見・ご感想などはマシュマロやDMまでお寄せください。
     </div>
 
-    <a href="https://x.com/qwertyaz111" class="sns-link" target="_blank" rel="noopener noreferrer">𝕏 (旧Twitter)はこちら</a>
+    <div class="link-row">
+        <a href="https://x.com/qwertyaz111" class="sns-link" target="_blank" rel="noopener noreferrer">𝕏 (旧Twitter)はこちら</a>
+        <a href="https://qwertyaz111.itch.io/r18-my-site-hub" class="extra-link-btn" target="_blank" rel="noopener noreferrer">❓ その他コンテンツ</a>
+    </div>
 </div>
 
 <div class="container">
@@ -225,7 +248,7 @@
     </a>
 
     <a href="https://qwertyaz111.github.io/kabedon-floor-simulator/" class="card">
-        <div class="icon">💥</div>
+        <div class="icon">💓</div>
         <div class="title">床ドンシミュレーター</div>
     </a>
 
@@ -313,24 +336,24 @@
         <div class="icon">🤲</div>
         <div class="title">膝抱っこシミュレーター</div>
     </a>
-    
-    <a href="https://qwertyaz111.github.io/hakozume-simulator/" class="card">
+
+<a href="https://qwertyaz111.github.io/hakozume-simulator/" class="card">
         <div class="icon">📦</div>
         <div class="title">箱詰めシミュレーター</div>
     </a>
-    
-    <a href="https://qwertyaz111.github.io/straddling-simulator/" class="card">
+
+<a href="https://qwertyaz111.github.io/straddling-simulator/" class="card">
         <div class="icon">🏇</div>
         <div class="title">跨りシミュレーター</div>
     </a>
-    
-    <a href="https://qwertyaz111.github.io/beddon-simulator/" class="card">
-        <div class="icon">🛏️</div>
+
+<a href="https://qwertyaz111.github.io/beddon-simulator/" class="card">
+        <div class="icon">🛏</div>
         <div class="title">ベッドドンシミュレーター</div>
     </a>
-    
-    <a href="https://qwertyaz111.github.io/propose-simulator/" class="card">
-        <div class="icon">💘</div>
+
+<a href="https://qwertyaz111.github.io/propose-simulator/" class="card">
+        <div class="icon">💍</div>
         <div class="title">プロポーズシミュレーター</div>
     </a>
     
