@@ -28,7 +28,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 12px 10px 70px 10px; /* 一番下のカード下にしっかり余裕を持たせる */
+            padding: 12px 10px 80px 10px; /* 一番下のカード下にしっかり余裕を持たせる */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -192,45 +192,52 @@
             color: var(--text-color);
         }
 
-        /* --- 下の方にもあることを知らせるフローティング誘導バー --- */
+        /* --- 下の方にもあることを知らせるフローティング誘導バー（より目立たせる＆一番下で自動非表示） --- */
         .scroll-hint-banner {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            background: linear-gradient(to top, rgba(253, 246, 227, 0.98) 70%, rgba(253, 246, 227, 0));
-            padding: 10px 0 12px;
+            background: linear-gradient(to top, rgba(253, 246, 227, 0.98) 75%, rgba(253, 246, 227, 0));
+            padding: 14px 0 16px;
             text-align: center;
             pointer-events: none;
             z-index: 100;
-            animation: bounceHint 1.8s infinite ease-in-out;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .scroll-hint-banner.hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
         }
 
         .scroll-hint-content {
             display: inline-block;
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(255, 204, 51, 0.6);
+            background: linear-gradient(135deg, #fffdf8, #fff3cd);
+            border: 2px solid var(--primary-color);
             color: var(--text-color);
-            font-size: 0.7rem;
+            font-size: 0.78rem;
             font-weight: 700;
-            padding: 4px 14px;
-            border-radius: 20px;
-            box-shadow: 0 3px 8px rgba(92, 75, 58, 0.1);
+            padding: 7px 18px;
+            border-radius: 24px;
+            box-shadow: 0 4px 12px rgba(92, 75, 58, 0.15);
             pointer-events: auto;
+            animation: bounceHint 1.6s infinite ease-in-out;
         }
 
         @keyframes bounceHint {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(3px); }
+            50% { transform: translateY(-4px); }
         }
 
         @media (max-width: 480px) {
-            body { padding: 8px 6px 75px 6px; }
+            body { padding: 8px 6px 85px 6px; }
             .container { gap: 8px; }
             .card { padding: 10px 8px; min-height: 48px; border-radius: 12px; }
             .icon { font-size: 1.25rem; width: 28px; }
             .title { font-size: 0.72rem; }
-            .scroll-hint-content { font-size: 0.65rem; padding: 3px 12px; }
+            .scroll-hint-content { font-size: 0.72rem; padding: 6px 16px; }
         }
     </style>
 </head>
@@ -394,12 +401,27 @@
     </a>
 </div>
 
-<!-- 下の方にもあることを知らせる目印バナー -->
-<div class="scroll-hint-banner">
+<!-- 下の方にもあることを知らせる目印バナー（一番下まで来たら自動で消える） -->
+<div id="scrollHintBanner" class="scroll-hint-banner">
     <div class="scroll-hint-content">
         👇 下にもまだシミュレーターがあります！
     </div>
 </div>
+
+<script>
+    // 一番下までスクロールしたときにバナーを隠す処理
+    window.addEventListener('scroll', function() {
+        const banner = document.getElementById('scrollHintBanner');
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const threshold = document.documentElement.scrollHeight - 50; // 下から50px手前
+
+        if (scrollPosition >= threshold) {
+            banner.classList.add('hidden');
+        } else {
+            banner.classList.remove('hidden');
+        }
+    });
+</script>
 
 </body>
 </html>
