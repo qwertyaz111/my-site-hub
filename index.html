@@ -9,354 +9,205 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #ffcc33; 
-            --secondary-color: #ffb347; 
-            --text-color: #5c4b3a; 
+            --primary-color: #ffcc33;
+            --text-color: #5c4b3a;
             --sub-text-color: #8c7b6a;
-            --bg-color: #fdf6e3; 
-            --card-bg: #ffffff;
+            --bg-color: #fdf6e3;
             --accent-glow: rgba(255, 204, 51, 0.4);
-            --new-color: #ff6b6b;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Noto Sans JP', 'Helvetica Neue', Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 12px 6px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
             -webkit-text-size-adjust: 100%;
         }
 
-        /* --- タイトル部分 --- */
-        header {
-            text-align: center;
-            margin-bottom: 8px;
-            width: 100%;
+        /* --- 1画面に収めるエリア --- */
+        .screen {
+            height: 100vh;
+            height: 100dvh;
+            min-height: 640px;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 8px 8px 8px;
+            display: flex;
+            flex-direction: column;
         }
 
+        header { text-align: center; margin-bottom: 6px; }
+
         h1 {
-            font-family: 'Noto Sans JP', sans-serif;
             font-weight: 700;
-            font-size: clamp(1rem, 4.5vw, 1.4rem); 
-            margin: 0 auto;
+            font-size: clamp(1.05rem, 5vw, 1.5rem);
+            margin: 0;
             position: relative;
             display: inline-block;
             padding: 0 4px;
-            color: var(--text-color);
             z-index: 1;
-            white-space: nowrap; 
-            letter-spacing: 0.01em;
+            white-space: nowrap;
         }
-
         h1::before {
             content: '';
             position: absolute;
             bottom: 2px;
             left: 0;
             width: 100%;
-            height: 6px;
+            height: 7px;
             background: rgba(255, 204, 51, 0.35);
             border-radius: 10px;
             z-index: -1;
         }
 
-        /* --- 常に表示される超コンパクト案内エリア --- */
-        .info-container {
-            width: 100%;
-            max-width: 800px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
-            border-radius: 12px;
-            padding: 8px 10px;
-            margin-bottom: 10px;
-            border: 1.5px solid rgba(255, 204, 51, 0.35);
-            box-shadow: 0 2px 6px rgba(92, 75, 58, 0.04);
-            text-align: center;
-        }
-
-        .rule-text {
-            font-size: 0.72rem;
-            line-height: 1.35;
-        }
-
-        .warning {
-            color: #e67e22;
-            font-weight: bold;
-        }
-
-        .notice-text {
-            margin-top: 4px;
-            font-size: 0.68rem;
-            color: var(--sub-text-color);
-            line-height: 1.25;
-        }
-
         .link-row {
-            margin-top: 6px;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
         }
-
-        .sns-link {
+        .sns-link, .extra-link-btn {
             display: inline-block;
-            color: var(--text-color);
             text-decoration: none;
-            font-size: 0.72rem;
+            font-size: 0.74rem;
             font-weight: 700;
-            transition: opacity 0.2s;
-        }
-        .sns-link:hover {
-            opacity: 0.7;
-        }
-
-        /* --- 独立させた❓風の隠しボタン --- */
-        .extra-link-btn {
-            display: inline-block;
-            background: rgba(255, 204, 51, 0.15);
-            border: 1px dashed rgba(140, 123, 106, 0.4);
-            color: var(--sub-text-color);
-            text-decoration: none;
-            font-size: 0.68rem;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 8px;
+            padding: 5px 10px;
+            border-radius: 9px;
+            white-space: nowrap;
             transition: all 0.2s ease;
         }
-        .extra-link-btn:hover {
-            background: rgba(255, 204, 51, 0.3);
+        .sns-link {
             color: var(--text-color);
-            border-color: var(--primary-color);
+            background: rgba(255, 204, 51, 0.3);
         }
+        .extra-link-btn {
+            color: var(--sub-text-color);
+            background: rgba(255, 204, 51, 0.15);
+            border: 1px dashed rgba(140, 123, 106, 0.5);
+        }
+        .sns-link:hover, .extra-link-btn:hover { background: rgba(255, 204, 51, 0.45); }
 
-        /* --- 3列固定カードコンテナ --- */
+        /* --- カード一覧：残りの高さにぴったり広げる --- */
         .container {
+            flex: 1;
+            min-height: 0;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            max-width: 800px;
-            width: 100%;
+            grid-template-rows: repeat(9, minmax(60px, 1fr));
+            gap: 6px;
         }
 
-        /* --- かわいくリフレッシュしたカードデザイン --- */
         .card {
             background: linear-gradient(145deg, #ffffff, #fffdf8);
-            border-radius: 14px;
-            padding: 10px 4px 8px;
+            border-radius: 12px;
+            padding: 4px 3px;
             text-decoration: none;
             color: inherit;
-            box-shadow: 0 3px 8px rgba(92, 75, 58, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 2px 6px rgba(92, 75, 58, 0.06);
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease;
-            border: 1.5px solid rgba(255, 204, 51, 0.25);
+            border: 1.5px solid rgba(255, 204, 51, 0.3);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            gap: 4px;
-            position: relative;
-            min-height: 64px;
+            gap: 3px;
         }
-
-        .card:not(.coming-soon):hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 6px 14px var(--accent-glow);
+        .card:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 5px 12px var(--accent-glow);
             border-color: var(--primary-color);
         }
+        .card:focus-visible { outline: 3px solid var(--primary-color); outline-offset: 1px; }
 
         .icon {
-            font-size: 1.25rem;
+            font-size: clamp(1.3rem, 3.6vh, 1.8rem);
             line-height: 1;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
         }
-
         .title {
             font-weight: 700;
-            font-size: 0.73rem;
+            font-size: clamp(0.66rem, 3vw, 0.8rem);
             line-height: 1.2;
             word-break: break-word;
-            color: var(--text-color);
         }
 
-        @media (max-width: 480px) {
-            body { padding: 8px 4px; }
-            .container { gap: 6px; }
-            .card { padding: 8px 3px 6px; min-height: 58px; border-radius: 12px; }
-            .icon { font-size: 1.1rem; }
-            .title { font-size: 0.65rem; letter-spacing: -0.02em; }
+        /* --- 案内（スクロールした先） --- */
+        .info-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 14px 16px 28px;
+            text-align: center;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: var(--sub-text-color);
+        }
+        .warning { color: #e67e22; font-weight: bold; }
+        .info-container p { margin: 0 0 8px; }
+
+        /* 広い画面は列を増やして1画面に収める */
+        @media (min-width: 700px) {
+            .container {
+                grid-template-columns: repeat(6, 1fr);
+                grid-template-rows: repeat(5, minmax(80px, 1fr));
+                gap: 8px;
+            }
+            .title { font-size: 0.85rem; }
+            .icon { font-size: clamp(1.5rem, 4vh, 2rem); }
         }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>体格差ツール・シミュレーター一覧</h1>
-</header>
-
-<div class="info-container">
-    <div class="rule-text">
-        スクショ投稿や加工、トレース等はご自由にお楽しみください。<br>
-        <span class="warning">※営利目的や商用利用はご遠慮ください。</span>
-    </div>
-    
-    <div class="notice-text">
-        新しいツールも準備ができ次第、順次追加予定です。<br>
-        ご意見・ご感想などはマシュマロやDMまでお寄せください。
-    </div>
+<div class="screen">
+    <header>
+        <h1>体格差ツール・シミュレーター一覧</h1>
+    </header>
 
     <div class="link-row">
-        <a href="https://x.com/qwertyaz111" class="sns-link" target="_blank" rel="noopener noreferrer">𝕏 (旧Twitter)はこちら</a>
-        <a href="https://qwertyaz111.itch.io/r18-my-site-hub" class="extra-link-btn" target="_blank" rel="noopener noreferrer">❓ 秘密の体格差シミュレーターはこちらから</a>
+        <a href="https://x.com/qwertyaz111" class="sns-link" target="_blank" rel="noopener noreferrer">𝕏 はこちら</a>
+        <a href="https://qwertyaz111.itch.io/r18-my-site-hub" class="extra-link-btn" target="_blank" rel="noopener noreferrer">❓ 秘密の体格差シミュレーター</a>
+    </div>
+
+    <div class="container">
+        <a href="https://qwertyaz111.github.io/hand-size-comparison/" class="card"><div class="icon">✋</div><div class="title">手の大きさ比較ツール</div></a>
+        <a href="https://qwertyaz111.github.io/foot-size-comparison/" class="card"><div class="icon">🦶</div><div class="title">足の大きさ比較ツール</div></a>
+        <a href="https://qwertyaz111.github.io/eye-level-simulator/" class="card"><div class="icon">👀</div><div class="title">目線差シミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/shared-shirt-simulator/" class="card"><div class="icon">👔</div><div class="title">彼シャツシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/stroll-date-simulator/" class="card"><div class="icon">👣</div><div class="title">おさんぽシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/kabedon-floor-simulator/" class="card"><div class="icon">💓</div><div class="title">床ドンシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/3d-height-comparison/" class="card"><div class="icon">📏</div><div class="title">3D身長比較ツール</div></a>
+        <a href="https://qwertyaz111.github.io/hug-simulator/" class="card"><div class="icon">🫂</div><div class="title">ハグシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/cuddling-simulator/" class="card"><div class="icon">💤</div><div class="title">添い寝シミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/couple-pic-simulator/" class="card"><div class="icon">🤳</div><div class="title">ツーショットシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/kiss-simulator/" class="card"><div class="icon">💋</div><div class="title">キスシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/aiaigasa-simulator/" class="card"><div class="icon">☔</div><div class="title">相合傘シミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/purikura-simulator/" class="card"><div class="icon">📸</div><div class="title">プリクラシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/sitting-simulator/" class="card"><div class="icon">🪑</div><div class="title">お座りシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/kabedon-simulator/" class="card"><div class="icon">🧱</div><div class="title">壁ドンシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/stay-at-home-date-simulator/" class="card"><div class="icon">🏠</div><div class="title">お家デートシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/lap-pillow-simulator/" class="card"><div class="icon">🦵</div><div class="title">膝枕シミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/sharing-a-scarf-simulator/" class="card"><div class="icon">🧣</div><div class="title">マフラーシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/piggyback-simulator/" class="card"><div class="icon">🎒</div><div class="title">おんぶシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/put-to-bed-simulator/" class="card"><div class="icon">👶</div><div class="title">寝かしつけシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/bookshelf-simulator/" class="card"><div class="icon">📚</div><div class="title">本棚シミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/princess-carry-simulator/" class="card"><div class="icon">👸</div><div class="title">お姫様抱っこシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/leg-hold-simulator/" class="card"><div class="icon">🤲</div><div class="title">膝抱っこシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/hakozume-simulator/" class="card"><div class="icon">📦</div><div class="title">箱詰めシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/straddling-simulator/" class="card"><div class="icon">🏇</div><div class="title">跨りシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/beddon-simulator/" class="card"><div class="icon">🛏</div><div class="title">ベッドドンシミュレーター</div></a>
+        <a href="https://qwertyaz111.github.io/propose-simulator/" class="card"><div class="icon">💍</div><div class="title">プロポーズシミュレーター</div></a>
     </div>
 </div>
 
-<div class="container">
-    <a href="https://qwertyaz111.github.io/hand-size-comparison/" class="card">
-        <div class="icon">✋</div>
-        <div class="title">手の大きさ比較ツール</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/foot-size-comparison/" class="card">
-        <div class="icon">🦶</div>
-        <div class="title">足の大きさ比較ツール</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/eye-level-simulator/" class="card">
-        <div class="icon">👀</div>
-        <div class="title">目線差シミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/shared-shirt-simulator/" class="card">
-        <div class="icon">👔</div>
-        <div class="title">彼シャツシミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/stroll-date-simulator/" class="card">
-        <div class="icon">👣</div>
-        <div class="title">おさんぽシミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/kabedon-floor-simulator/" class="card">
-        <div class="icon">💓</div>
-        <div class="title">床ドンシミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/3d-height-comparison/" class="card">
-        <div class="icon">📏</div>
-        <div class="title">3D身長比較ツール</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/hug-simulator/" class="card">
-        <div class="icon">🫂</div>
-        <div class="title">ハグシミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/cuddling-simulator/" class="card">
-        <div class="icon">💤</div>
-        <div class="title">添い寝シミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/couple-pic-simulator/" class="card">
-        <div class="icon">🤳</div>
-        <div class="title">ツーショットシミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/kiss-simulator/" class="card">
-        <div class="icon">💋</div>
-        <div class="title">キスシミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/aiaigasa-simulator/" class="card">
-        <div class="icon">☔</div>
-        <div class="title">相合傘シミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/purikura-simulator/" class="card">
-        <div class="icon">📸</div>
-        <div class="title">プリクラシミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/sitting-simulator/" class="card">
-        <div class="icon">🪑</div>
-        <div class="title">お座りシミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/kabedon-simulator/" class="card">
-        <div class="icon">🧱</div>
-        <div class="title">壁ドンシミュレーター</div>
-    </a>
-    
-    <a href="https://qwertyaz111.github.io/stay-at-home-date-simulator/" class="card">
-        <div class="icon">🏠</div>
-        <div class="title">お家デートシミュレーター</div>
-    </a>
-    
-    <a href="https://qwertyaz111.github.io/lap-pillow-simulator/" class="card">
-        <div class="icon">🦵</div>
-        <div class="title">膝枕シミュレーター</div>
-    </a>
-    
-    <a href="https://qwertyaz111.github.io/sharing-a-scarf-simulator/" class="card">
-        <div class="icon">🧣</div>
-        <div class="title">マフラーシミュレーター</div>
-    </a>
-    
-    <a href="https://qwertyaz111.github.io/piggyback-simulator/" class="card">
-        <div class="icon">🎒</div>
-        <div class="title">おんぶシミュレーター</div>
-    </a>
-    
-    <a href="https://qwertyaz111.github.io/put-to-bed-simulator/" class="card">
-        <div class="icon">👶</div>
-        <div class="title">寝かしつけシミュレーター</div>
-    </a>    
-
-    <a href="https://qwertyaz111.github.io/bookshelf-simulator/" class="card">
-        <div class="icon">📚</div>
-        <div class="title">本棚シミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/princess-carry-simulator/" class="card">
-        <div class="icon">👸</div>
-        <div class="title">お姫様抱っこシミュレーター</div>
-    </a>
-
-    <a href="https://qwertyaz111.github.io/leg-hold-simulator/" class="card">
-        <div class="icon">🤲</div>
-        <div class="title">膝抱っこシミュレーター</div>
-    </a>
-
-<a href="https://qwertyaz111.github.io/hakozume-simulator/" class="card">
-        <div class="icon">📦</div>
-        <div class="title">箱詰めシミュレーター</div>
-    </a>
-
-<a href="https://qwertyaz111.github.io/straddling-simulator/" class="card">
-        <div class="icon">🏇</div>
-        <div class="title">跨りシミュレーター</div>
-    </a>
-
-<a href="https://qwertyaz111.github.io/beddon-simulator/" class="card">
-        <div class="icon">🛏</div>
-        <div class="title">ベッドドンシミュレーター</div>
-    </a>
-
-<a href="https://qwertyaz111.github.io/propose-simulator/" class="card">
-        <div class="icon">💍</div>
-        <div class="title">プロポーズシミュレーター</div>
-    </a>
-    
+<div class="info-container">
+    <p>スクショ投稿や加工、トレース等はご自由にお楽しみください。<br>
+    <span class="warning">※営利目的や商用利用はご遠慮ください。</span></p>
+    <p>新しいツールも準備ができ次第、順次追加予定です。<br>
+    ご意見・ご感想などはマシュマロやDMまでお寄せください。</p>
 </div>
 
 </body>
